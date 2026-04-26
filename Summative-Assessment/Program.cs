@@ -2,7 +2,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Sqlite;
-using Microsoft.EntityFrameworkCore.Relational;
 
 public class LibraryContext: DbContext
 {
@@ -13,16 +12,11 @@ public class LibraryContext: DbContext
 
     public DbSet<BorrowedItem> BorrowedItems { get; set; }
 
-    public void Configure(EntityTypeBuilder<Book> builder)
-    {
-        
-    }
-
     // Where the database is located.
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // Needs to be the whole path.
-        optionsBuilder.UseSqlite("Data Source=Library.db");
+        optionsBuilder.UseSqlite("Data Source=/home/Lachlan/Summative-Programming-Assessment-2026/Summative-Programming-Assessment-2026/Summative-Assessment/Library.db");
     }
 }
 
@@ -40,12 +34,12 @@ public class Book
     public int NonFiction { get; set; } 
 
     //! Only use if the book is non-fiction. Leave empty otherwise.
-    public float? DeweyNumber { get; set; }
+    public float DeweyNumber { get; set; }
 
     public int Available { get; set; }
 
     // Constructor for instances.
-    public Book(string title, string authorFName, string authorLName, int nonFiction, float? deweyNumber)
+    public Book(string title, string authorFName, string authorLName, int nonFiction, float deweyNumber)
     {
         Title = title;
 
@@ -56,21 +50,23 @@ public class Book
         NonFiction = nonFiction;
 
         DeweyNumber = deweyNumber;
+
+        Available = 0;
     }
 }
 
-public class Borrower(string fName, string lName)
+public class Borrower
 {
     // Makes Id an autonumber
     public int Id { get; set; }
     // First name of the borrower.
-    public string FName = fName;
+    public string FName { get; set; }
 
     // Last name of the borrower.
-    public string LName = lName;
+    public string LName { get; set; }
 }
 
-public class BorrowedItem(int bookId, int borrowerId)
+public class BorrowedItem
 {
     // How many weeks the book can be borrowed for.
     public const int WeeksOnLoan = 2;
@@ -82,16 +78,16 @@ public class BorrowedItem(int bookId, int borrowerId)
     public const int LoanLength = WeeksOnLoan * DaysInAWeek;
 
     // The primary key for the book being borrowed.
-    public int BookId = bookId;
+    public int Id { get; set; }
 
     // PK of the borrower
-    public int BorrowerId = borrowerId;
+    public int BorrowerId { get; set; }
 
     // The date the book was issued.
-    public DateOnly  DateIssued = DateOnly.FromDateTime(DateTime.Now);
+    public DateOnly DateIssued { get; set; }
 
     // The date is due back
-    public DateOnly DateDue => DateIssued.AddDays(LoanLength);
+    public DateOnly DateDue { get; set; }
 
     // How many times the book has been renewed.
     // Defaults to 0.
@@ -101,18 +97,47 @@ public class BorrowedItem(int bookId, int borrowerId)
     // Defaults to 0.
     public int Overdue = 0;
 
+    // Gets the correct dates when creating the instance.
+    public BorrowedItem()
+    {
+        DateIssued = DateOnly.FromDateTime(DateTime.Now);
+
+        // Adds the loan length to the current date.
+        DateDue = DateIssued.AddDays(LoanLength);
+    }
 }
 
 class Program
 {
+    static void welcomeMessage()
+        {
+            const string Message = 
+            """
+            Welcome to The Library.
+            """;
+
+            Console.WriteLine(Message);
+        }
+
     static void Main(string[] args)
     {
         using (var db = new LibraryContext())
         {
             Console.WriteLine("Connection successful.");
-            var testBorrower = new Borrower("Lachlan", "Gardner");
+
+            var testBorrower = new Borrower();
+            testBorrower.FName = "Lachlan";
+            testBorrower.LName = "Gardner";
+
+            var testBook = new Book("Test title", "Test authorFName", "Test authorLName", 0, 0);
+
+            var testBorrowedItem = new BorrowedItem();
+            testBorrowedItem.Id = 2;
+            testBorrowedItem.BorrowerId = 1;
 
             db.Borrowers.Add(testBorrower);
+            db.Books.Add(testBook);
+            db.BorrowedItems.Add(testBorrowedItem);
             Console.WriteLine("Adding successful");
 
             db.SaveChanges();
