@@ -2,6 +2,7 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Sqlite;
+using Microsoft.EntityFrameworkCore.Relational;
 
 public class LibraryContext: DbContext
 {
@@ -11,6 +12,11 @@ public class LibraryContext: DbContext
     public DbSet<Borrower> Borrowers { get; set; }
 
     public DbSet<BorrowedItem> BorrowedItems { get; set; }
+
+    public void Configure(EntityTypeBuilder<Book> builder)
+    {
+        
+    }
 
     // Where the database is located.
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -22,9 +28,10 @@ public class LibraryContext: DbContext
 
 public class Book
 {
-    required public string Title { get; set; }
+    public int Id { get; set; }
+    public string Title { get; set; }
 
-    required public string AuthorFName { get; set; }
+    public string AuthorFName { get; set; }
 
     public string AuthorLName { get; set; }
 
@@ -33,10 +40,12 @@ public class Book
     public int NonFiction { get; set; } 
 
     //! Only use if the book is non-fiction. Leave empty otherwise.
-    public float DeweyNumber { get; set; }
+    public float? DeweyNumber { get; set; }
+
+    public int Available { get; set; }
 
     // Constructor for instances.
-    public Book(string title, string authorFName, string authorLName, int nonFiction, int deweyNumber)
+    public Book(string title, string authorFName, string authorLName, int nonFiction, float? deweyNumber)
     {
         Title = title;
 
@@ -50,39 +59,64 @@ public class Book
     }
 }
 
-public class Borrower
+public class Borrower(string fName, string lName)
 {
+    // Makes Id an autonumber
+    public int Id { get; set; }
     // First name of the borrower.
-    required public string FName { get; set; }
+    public string FName = fName;
 
     // Last name of the borrower.
-    required public string LName { get; set; }
-
-    // Constructor for Borrowers to make adding new ones more readable.
-    public Borrower(string firstName, string lastName)
-    {
-        // Assigning the data passed into the constructor.
-        FName = firstName;
-
-        LName = lastName;
-    }
+    public string LName = lName;
 }
 
-public class BorrowedItem
+public class BorrowedItem(int bookId, int borrowerId)
 {
+    // How many weeks the book can be borrowed for.
+    public const int WeeksOnLoan = 2;
+    
+    public const int DaysInAWeek = 7;
+
+    // How long the book can be on loan for in days.
+    // The number of weeks * the number of days in a week.
+    public const int LoanLength = WeeksOnLoan * DaysInAWeek;
+
     // The primary key for the book being borrowed.
-    required public int BookID { get; set; }
+    public int BookId = bookId;
 
     // PK of the borrower
-    required public int BorrowerID { get; set; }
+    public int BorrowerId = borrowerId;
 
     // The date the book was issued.
-    required public DateTime DateIssued { get; set; }
+    public DateOnly  DateIssued = DateOnly.FromDateTime(DateTime.Now);
 
     // The date is due back
-    required public DateTime DateDue { get; set; }
+    public DateOnly DateDue => DateIssued.AddDays(LoanLength);
 
     // How many times the book has been renewed.
-    // Defaults to 0 on null.
-    public int Renewed { get; set; }
+    // Defaults to 0.
+    public int Renewed = 0;
+
+    // An int because sqlite doesn't have booleans.
+    // Defaults to 0.
+    public int Overdue = 0;
+
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        using (var db = new LibraryContext())
+        {
+            Console.WriteLine("Connection successful.");
+            var testBorrower = new Borrower("Lachlan", "Gardner");
+
+            db.Borrowers.Add(testBorrower);
+            Console.WriteLine("Adding successful");
+
+            db.SaveChanges();
+            Console.WriteLine("Saving successful");
+        }
+    }
 }
