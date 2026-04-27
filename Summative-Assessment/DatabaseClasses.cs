@@ -60,10 +60,10 @@ public class Borrower
     // Makes Id an autonumber
     public int Id { get; set; }
     // First name of the borrower.
-    required public string FName { get; set; }
+    public string FName { get; set; }
 
     // Last name of the borrower.
-    required public string LName { get; set; }
+    public string LName { get; set; }
 }
 
 public class BorrowedItem
