@@ -13,7 +13,8 @@ class Program
     /// </summary>
     static void PrintWelcomeMessage()
     {
-        const string Message = "Welcome to The Library.";
+        // Adds a newline to the end of the message to add some clarity between the parts of the program.
+        const string Message = "\nWelcome to The Library.\n";
 
         Console.WriteLine(Message);
     }
@@ -69,7 +70,7 @@ class Program
     /// Prints each of the options and its option number.
     /// </summary>
     /// <returns>The option number.</returns>
-    static void PrintMenuOptions(string[] options)
+    public static void PrintMenuOptions(string[] options)
     {
         // Iterates through the options, printing each option and its option number.
         foreach (string option in options)
@@ -80,6 +81,8 @@ class Program
 
             Console.WriteLine(message);
         }
+
+        string quitOption = $"{options.Count() + 1}) Quit the program.";
     }
 
     /// <summary>
@@ -153,7 +156,7 @@ class Program
     /// Prints the books out in a nice to read layout.
     /// </summary>
     /// <param name="books">The list of books to print</param>
-    static void ListBooks(List<Book> books)
+    public static void ListBooks(List<Book> books)
     {
         foreach (Book book in books)
         {
@@ -199,7 +202,7 @@ class Program
     /// <summary>
     /// Searches through AuthorFName, AuthorLName, and Title in the Books table and lists them.
     /// </summary>
-    static void SearchBooks()
+    public static void SearchBooks()
     {
         using var db = new LibraryContext();
 
@@ -307,7 +310,7 @@ class Program
     /// </summary>
     /// <param name="options">The list of options to print out.</param>
     /// <returns>The option number of the option they select.</returns>
-    static int Menu(string[] options)
+    public static int Menu(string[] options)
     {
         PrintMenuOptions(options);
 
@@ -344,40 +347,62 @@ class Program
             }
         } while (!validInput);
 
+        Console.WriteLine();
+
         return userInput;
     }
 
     /// <summary>
-    /// The switch statement that calls the right functions.
+    /// The main menu that greets the user at the start.
     /// </summary>
-    /// <param name="optionChosen">The option the user has chosen.</param>
-    static void InitialOptionsMenu(int optionChosen)
+    /// <returns>The option they choose.</returns>
+    public static int InitialOptionsMenu()
     {
-        switch (optionChosen)
-        {
-            case 1:
-                ChooseBorrower();
-                break;
-            case 2:
-                AddNewBorrower();
-                break;
-            case 3:
-                SearchBooks();
-                break;
-            case 4:
-                ReturnBook();
-                break;
-            default:
-                break;
-        }
+        // The list of options for the user to choose from at the start of the program.
+        string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book"];
+
+        // Creates a menu with those options.
+        return Menu(firstMenuOptions);
     }
 
     static void Main(string[] args)
     {
-        string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book"];
+        PrintWelcomeMessage();
 
-        InitialOptionsMenu(Menu(firstMenuOptions));
+        // Says the program is in use.
+        bool inUse = true;
 
+        while (inUse)
+        {
+            // What the user has picked with the intial options.
+            int optionChosen = InitialOptionsMenu();
+
+            // Carring out the options.
+            switch (optionChosen)
+            {
+                case 1:
+                    // Logs into the borrower.
+                    CurrentBorrower currentBorrower = ChooseBorrower();
+                    currentBorrower.BorrowerOptions();
+                    break;
+                case 2:
+                    // Adds a new borrower to the borrowers table.
+                    AddNewBorrower();
+                    break;
+                case 3:
+                    // Searches through the Books table to find matching books.
+                    SearchBooks();
+                    break;
+                case 4:
+                    // Returns (as in returning a loan) a book based on the Id.
+                    ReturnBook();
+                    break;
+                default:
+                    // Exits the loop.
+                    inUse = false;
+                    break;
+            }
+        }
         
     }
 }

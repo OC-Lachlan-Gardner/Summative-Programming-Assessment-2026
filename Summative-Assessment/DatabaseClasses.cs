@@ -164,8 +164,60 @@ class CurrentBorrower
         }
     }
 
-    public static void PrintBorrowerOptions()
+    public void ListBorrowerBooks()
     {
-        
+        const string NoBooksMessage = "You have no books on loan.";
+
+        using var db = new LibraryContext();
+
+        List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
+
+        // If the borrower has books on loan.
+        if (borrowedItems.Count() > 0)
+        {
+            List<Book> borrowedBooks = new List<Book> {};
+
+            foreach (BorrowedItem borrowedItem in borrowedItems)
+            {
+                borrowedBooks.Add(db.Books.Find(borrowedItem.Id));
+            }
+
+            Program.ListBooks(borrowedBooks);
+        } else
+        {
+            Console.WriteLine(NoBooksMessage);
+        }
+    }
+
+    public void Logout()
+    {
+        Program.InitialOptionsMenu();
+    }
+
+    public void BorrowerOptions()
+    {
+        string[] options = ["List borrowed books", "Issue a book", "Search books", "Logout"];
+
+        bool loggedIn = true;
+
+        while (loggedIn) {
+            int optionChosen = Program.Menu(options);
+
+            switch (optionChosen)
+            {
+                case 1:
+                    ListBorrowerBooks();
+                    break;
+                case 2:
+                    BorrowBook();
+                    break;
+                case 3:
+                    Program.SearchBooks();
+                    break;
+                default:
+                    loggedIn = false;
+                    break;
+            }
+        }
     }
 }
