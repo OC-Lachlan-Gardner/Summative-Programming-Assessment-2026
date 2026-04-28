@@ -301,6 +301,7 @@ class Program
         } while (!validInput);
     }
 
+
     /// <summary>
     /// Prints out a list of options as a menu.
     /// </summary>
@@ -377,7 +378,9 @@ class Program
         {
             string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book"];
         }
-        ReturnBook();
-        SearchBooks();
+
+        CurrentBorrower currentBorrower = ChooseBorrower();
+
+        currentBorrower.BorrowBook();
     }
 }

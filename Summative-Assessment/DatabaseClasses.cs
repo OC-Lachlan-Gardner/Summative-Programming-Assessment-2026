@@ -69,13 +69,13 @@ public class Borrower
 public class BorrowedItem
 {
     // How many weeks the book can be borrowed for.
-    public const int WeeksOnLoan = 2;
+    const int WeeksOnLoan = 2;
     
-    public const int DaysInAWeek = 7;
+    const int DaysInAWeek = 7;
 
     // How long the book can be on loan for in days.
     // The number of weeks * the number of days in a week.
-    public const int LoanLength = WeeksOnLoan * DaysInAWeek;
+    const int LoanLength = WeeksOnLoan * DaysInAWeek;
 
     // The primary key for the book being borrowed.
     public int Id { get; set; }
@@ -126,5 +126,40 @@ class CurrentBorrower
         FName = currentBorrower.FName;
 
         LName = currentBorrower.LName;
+    }
+
+    public void BorrowBook()
+    {
+        const string InvalidBookIdMessage = "That isn't a valid book Id";
+        const string BookIdPrompt = "What is the Id of the book you want to issue: ";
+
+        int bookId;
+
+        try
+        {
+            Console.Write(BookIdPrompt);
+
+            bookId = Convert.ToInt32(Console.ReadLine());
+
+            using var db = new LibraryContext();
+
+            // Creates an BorrowedItem to add to the BorrowedItews table.
+            BorrowedItem borrowedBook = new BorrowedItem();
+            borrowedBook.BorrowerId = BorrowerId;
+            borrowedBook.Id = bookId;
+
+            // If it causes an error, then it'll get caught by the catch statement.
+            Book bookToBorrow = db.Books.Find(bookId)!;
+            bookToBorrow.Available = 0;
+
+            db.BorrowedItems.Add(borrowedBook);
+
+            db.SaveChanges();
+        } catch
+        {
+            Console.WriteLine(InvalidBookIdMessage);
+        }
+
+
     }
 }
