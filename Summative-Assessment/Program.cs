@@ -14,7 +14,7 @@ class Program
     static void PrintWelcomeMessage()
     {
         // Adds a newline to the end of the message to add some clarity between the parts of the program.
-        const string Message = "\nWelcome to The Library.\n";
+        const string Message = "\nWelcome to The Library.";
 
         Console.WriteLine(Message);
     }
@@ -72,6 +72,9 @@ class Program
     /// <returns>The option number.</returns>
     public static void PrintMenuOptions(string[] options)
     {
+        // Adds a space between the previous thing and this menu.
+        Console.WriteLine();
+
         // Iterates through the options, printing each option and its option number.
         foreach (string option in options)
         {
@@ -189,10 +192,11 @@ class Program
             // Index + 1 because it starts at 0.
             string bookPrintStructure = 
             $"""
-            {books.IndexOf(book) + 1}) {book.Title}
-                Author: {book.AuthorFName} {book.AuthorLName}
-                Genre: {genre}  {deweyNumber}
-                Availablility: {available}
+
+                {books.IndexOf(book) + 1}) {book.Title}
+                    Author: {book.AuthorFName} {book.AuthorLName}
+                    Genre: {genre}  {deweyNumber}
+                    Availablility: {available}
             """;
 
             Console.WriteLine(bookPrintStructure);
@@ -207,6 +211,7 @@ class Program
         using var db = new LibraryContext();
 
         const string SearchPrompt = "Enter the keyword you want to search for: ";
+        const string NoBooksMessage = "There are no books that match the search term.";
 
         string searchFor = CheckUserString(SearchPrompt);
 
@@ -218,7 +223,14 @@ class Program
         
         List<Book> searchResults = booksTitles.Union(booksAuthorsLName).Union(booksAuthorsFName).ToList();
 
-        ListBooks(searchResults);
+        if (searchResults.Count > 0)
+        {
+            ListBooks(searchResults);
+        }
+        else
+        {
+            Console.WriteLine(NoBooksMessage);
+        }
     }
 
     /// <summary>
