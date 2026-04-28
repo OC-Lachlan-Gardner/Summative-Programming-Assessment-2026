@@ -27,11 +27,14 @@ class Program
     /// <returns>True if the input is valid.</returns>
     static bool CheckOptionInput(int input, string[] options)
     {
-        if (input < options.Length)
+        const string InvalidInputMessage = "That isn't a valid option.";
+
+        if (input <= options.Count())
         {
             return true;
         } else
         {
+            Console.WriteLine(InvalidInputMessage);
             return false;
         }
     }
@@ -72,20 +75,15 @@ class Program
     /// <returns>The option number.</returns>
     public static void PrintMenuOptions(string[] options)
     {
-        // Adds a space between the previous thing and this menu.
-        Console.WriteLine();
-
         // Iterates through the options, printing each option and its option number.
         foreach (string option in options)
         {
             // The message to print.
             // Index + 1 is to offset the index starting from 0.
-            string message = $"{options.IndexOf(option) + 1}) {option}.";
+            string message = $"    {options.IndexOf(option) + 1}) {option}.";
 
             Console.WriteLine(message);
         }
-
-        string quitOption = $"{options.Count() + 1}) Quit the program.";
     }
 
     /// <summary>
@@ -322,8 +320,12 @@ class Program
     /// </summary>
     /// <param name="options">The list of options to print out.</param>
     /// <returns>The option number of the option they select.</returns>
-    public static int Menu(string[] options)
+    public static int Menu(string[] options, string menuName)
     {
+        // Adds a space.
+        Console.WriteLine();
+        Console.WriteLine(menuName + ":");
+
         PrintMenuOptions(options);
 
         // Declares the variable that'll control the loop.
@@ -368,13 +370,14 @@ class Program
     /// The main menu that greets the user at the start.
     /// </summary>
     /// <returns>The option they choose.</returns>
-    public static int InitialOptionsMenu()
+    public static int MainMenu()
     {
+        const string menuName = "Main Menu";
         // The list of options for the user to choose from at the start of the program.
-        string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book"];
+        string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book", "Quit"];
 
         // Creates a menu with those options.
-        return Menu(firstMenuOptions);
+        return Menu(firstMenuOptions, menuName);
     }
 
     static void Main(string[] args)
@@ -387,7 +390,7 @@ class Program
         while (inUse)
         {
             // What the user has picked with the intial options.
-            int optionChosen = InitialOptionsMenu();
+            int optionChosen = MainMenu();
 
             // Carring out the options.
             switch (optionChosen)

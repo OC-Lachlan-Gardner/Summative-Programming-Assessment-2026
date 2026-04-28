@@ -189,19 +189,18 @@ class CurrentBorrower
         }
     }
 
-    public void Logout()
-    {
-        Program.InitialOptionsMenu();
-    }
-
     public void BorrowerOptions()
     {
+        const string menuName = "Borrower Menu";
+
         string[] options = ["List borrowed books", "Issue a book", "Search books", "Logout"];
+
+        Console.WriteLine(options.Count());  
 
         bool loggedIn = true;
 
         while (loggedIn) {
-            int optionChosen = Program.Menu(options);
+            int optionChosen = Program.Menu(options, menuName);
 
             switch (optionChosen)
             {
@@ -216,6 +215,8 @@ class CurrentBorrower
                     break;
                 default:
                     loggedIn = false;
+                    const string logoutMessage = "\nYou have been logged out.";
+                    Console.WriteLine();
                     break;
             }
         }
