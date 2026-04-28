@@ -374,13 +374,10 @@ class Program
 
     static void Main(string[] args)
     {
-        using (var db = new LibraryContext())
-        {
-            string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book"];
-        }
+        string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book"];
 
-        CurrentBorrower currentBorrower = ChooseBorrower();
+        InitialOptionsMenu(Menu(firstMenuOptions));
 
-        currentBorrower.BorrowBook();
+        
     }
 }

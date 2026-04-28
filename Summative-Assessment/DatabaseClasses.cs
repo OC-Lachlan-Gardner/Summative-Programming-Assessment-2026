@@ -128,6 +128,9 @@ class CurrentBorrower
         LName = currentBorrower.LName;
     }
 
+    /// <summary>
+    /// Gets an int from the user then issues it if it's a valid Id.
+    /// </summary>
     public void BorrowBook()
     {
         const string InvalidBookIdMessage = "That isn't a valid book Id";
@@ -159,7 +162,10 @@ class CurrentBorrower
         {
             Console.WriteLine(InvalidBookIdMessage);
         }
+    }
 
-
+    public static void PrintBorrowerOptions()
+    {
+        
     }
 }
