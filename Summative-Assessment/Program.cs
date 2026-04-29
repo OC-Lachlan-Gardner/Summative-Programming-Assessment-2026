@@ -28,8 +28,10 @@ class Program
     static bool CheckOptionInput(int input, string[] options)
     {
         const string InvalidInputMessage = "That isn't a valid option.";
+        // The lowest number of the options.
+        const int MinInput = 1;
 
-        if (input <= options.Count())
+        if (input <= options.Count() && input >= MinInput)
         {
             return true;
         } else
@@ -114,6 +116,8 @@ class Program
 
         const string SearchPrompt = "Enter the keyword you want to search for: ";
         const string NoBooksMessage = "There are no books that match the search term.";
+        // The minimum count for the list to print anything.
+        const int MinCount = 0;
 
         string searchFor = CheckUserString(SearchPrompt);
 
@@ -125,7 +129,7 @@ class Program
         
         List<Book> searchResults = booksTitles.Union(booksAuthorsLName).Union(booksAuthorsFName).ToList();
 
-        if (searchResults.Count > 0)
+        if (searchResults.Count > MinCount)
         {
             Book.ListBooks(searchResults);
         }
@@ -202,6 +206,8 @@ class Program
 
     static void Main(string[] args)
     {
+        const string InvalidOptionMessage = "That isn't a valid option.";
+
         PrintWelcomeMessage();
 
         // Says the program is in use.
@@ -229,12 +235,16 @@ class Program
                     SearchBooks();
                     break;
                 case 4:
-                    // Returns (as in returning a loan) a book based on the Id.
+                    // Returns (as in returning a loan to the library) a book based on the Id.
                     Book.ReturnBook();
                     break;
-                default:
+                case 5:
                     // Exits the loop.
                     inUse = false;
+                    break;
+                default:
+                    // In case the user inputs 0.
+                    Console.WriteLine(InvalidOptionMessage);
                     break;
             }
         }

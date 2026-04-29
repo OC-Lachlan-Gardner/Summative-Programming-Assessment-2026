@@ -70,7 +70,7 @@ public class Book
             if (book.NonFiction == 1)
             {
                 // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-                deweyNumber = $"\n    Dewey Decimal Number: {book.DeweyNumber}";
+                deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
                 genre = "Non-Fiction";
             } else
             {
@@ -93,9 +93,51 @@ public class Book
             $"""
 
                 {books.IndexOf(book) + 1}) {book.Title}
+                    Book Id: {book.Id}
                     Author: {book.AuthorFName} {book.AuthorLName}
                     Genre: {genre}  {deweyNumber}
                     Availablility: {available}
+            """;
+
+            Console.WriteLine(bookPrintStructure);
+        }
+    }
+
+    public static void ListBorrowedBooks(List<Book> books)
+    {
+        using var db = new LibraryContext();
+
+        foreach (Book book in books)
+        {
+            // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
+            // Declared out here so that it can be used outside the if else statements.
+            string deweyNumber;
+
+            BorrowedItem borrowedBook = db.BorrowedItems.Find(book.Id);
+            
+            string genre;
+            if (book.NonFiction == 1)
+            {
+                // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                deweyNumber = $"\n    Dewey Decimal Number: {book.DeweyNumber}";
+                genre = "Non-Fiction";
+            } else
+            {
+                // Means the dewey number won't add anything if the book is fiction.
+                deweyNumber = "";
+                genre = "Fiction";
+            }
+
+            // Index + 1 because it starts at 0.
+            string bookPrintStructure = 
+            $"""
+
+                {books.IndexOf(book) + 1}) {book.Title}
+                    Book Id: {book.Id}
+                    Author: {book.AuthorFName} {book.AuthorLName}
+                    Genre: {genre}{deweyNumber}
+                    Issued: {borrowedBook.DateIssued}
+                    Due: {borrowedBook.DateDue}
             """;
 
             Console.WriteLine(bookPrintStructure);
@@ -221,7 +263,7 @@ public class BorrowedItem
 
     // How many times the book has been renewed.
     // Defaults to 0.
-    public int Renewed = 0;
+    public int Renewed { get; set; }
     // The max number of times a book can be renewed.
     public const int MaxRenews = 2;
     // How long the renewing adds to the loan.
@@ -235,6 +277,8 @@ public class BorrowedItem
 
         // Adds the loan length to the current date.
         DateDue = DateIssued.AddDays(LoanLength);
+
+        Renewed = 0;
     }
 }
 
@@ -361,7 +405,7 @@ class CurrentBorrower
                 borrowedBooks.Add(db.Books.Find(borrowedItem.Id));
             }
 
-            Book.ListBooks(borrowedBooks);
+            Book.ListBorrowedBooks(borrowedBooks);
         } else
         {
             Console.WriteLine(NoBooksMessage);
@@ -410,6 +454,7 @@ class CurrentBorrower
     {
         const string InvalidIdMessage = "That isn't a valid Id.";
         const string MaxRenewsMessage = "You've already renewed the max amount of times.";
+        string RenewMessage = $"Your book has been renewed for {BorrowedItem.LoanLength} more days.";
 
         using var db = new LibraryContext();
 
@@ -421,12 +466,17 @@ class CurrentBorrower
             if (bookToReturn.Renewed <= BorrowedItem.MaxRenews)
             {
                 // Pushes the due date back.
-                bookToReturn.DateDue.AddDays(BorrowedItem.RenewLength);
+                bookToReturn.DateDue = bookToReturn.DateDue.AddDays(BorrowedItem.RenewLength);
                 
+                Console.WriteLine(bookToReturn.DateDue);
+
                 // Increases the renew count by one.
                 bookToReturn.Renewed++;
+                Console.WriteLine(bookToReturn.Renewed);
 
                 db.SaveChanges();
+
+                Console.WriteLine(RenewMessage);
             }
             else
             {
@@ -437,18 +487,27 @@ class CurrentBorrower
         {
             Console.WriteLine(InvalidIdMessage);
         }
+
+        db.SaveChanges();
     }
 
     void BookOperations()
     {
-        const string OperationPrompt = "Enter the number of the book you would like to modify, or q to go back to Borrower Menu: ";
+        const string OperationPrompt = "Enter the number of the book you would like to renew, or 0 to go back to Borrower Menu: ";
+        const string InvalidOptionMessage = "That isn't a valid option.";
+
+        /// The number the user has to enter to quit the book operations menu.
+        const int quitOption = 0;
+
         using var db = new LibraryContext();
 
+        // Collects all the books borrowed by the current borrower.
         List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
 
         bool validInput = false;
 
-        int userInput;
+        // Defaults to -1 because it won't get in the way.
+        int userInput = -1;
 
         while (!validInput)
         {
@@ -462,42 +521,43 @@ class CurrentBorrower
                 // This causes it to ask again.
                 userInput = Convert.ToInt32(Console.ReadLine());
 
+                BorrowedItem chosenBook = borrowedItems[userInput - 1];
+
                 // The forced non-null will trigger an error that'll get caught by the catch.
-                BorrowedItem borrowedBook = db.BorrowedItems.Find(userInput)!;
-                Book book = db.Books.Find(borrowedBook.Id)!;
+                List<Book> book = new List<Book> {db.Books.Find(chosenBook.Id)!};
 
-                // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
-                // Declared out here so that it can be used outside the if else statements.
-                string deweyNumber;
-                
-                string genre;
-                if (book.NonFiction == 1)
-                {
-                    // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-                    deweyNumber = $"\n    Dewey Decimal Number: {book.DeweyNumber}";
-                    genre = "Non-Fiction";
-                } else
-                {
-                    // Means the dewey number won't add anything if the book is fiction.
-                    deweyNumber = "";
-                    genre = "Fiction";
-                }
-
-                // Index + 1 because it starts at 0.
-                string bookPrint = 
-                $"""
-                {book.Title}
-                    Author: {book.AuthorFName} {book.AuthorLName}
-                    Issued: {borrowedBook.DateIssued}
-                    Due: {borrowedBook.DateDue}
-                    Genre: {genre}{deweyNumber}
-                """;
-
-                Console.WriteLine(bookPrint);
+                Book.ListBorrowedBooks(book);
 
                 // Needs to print out the list of options then take an input.
-                string[] bookOptions = ["Renew book"];
-            
+                string[] bookOptions = ["Renew book", "Cancel"];
+                string menuName = "Book Menu";
+
+                int optionChosen = Program.Menu(bookOptions, menuName);
+
+                switch (optionChosen)
+                {
+                    case 1:
+                        int bookToRenew = chosenBook.Id;
+
+                        RenewBook(bookToRenew);
+                        break;
+                    case 2:
+                        return;
+                    default:
+                        Console.WriteLine(InvalidOptionMessage);
+                        break;
+                }
+
+                
+            }
+            catch
+            {   
+                if (userInput == quitOption)
+                {
+                    return;
+                }
+                Console.WriteLine(InvalidOptionMessage);
+            }
         }
     }
 
