@@ -93,10 +93,6 @@ public class BorrowedItem
     // Defaults to 0.
     public int Renewed = 0;
 
-    // An int because sqlite doesn't have booleans.
-    // Defaults to 0.
-    public int Overdue = 0;
-
     // Gets the correct dates when creating the instance.
     public BorrowedItem()
     {
@@ -189,13 +185,51 @@ class CurrentBorrower
         }
     }
 
+    /// <summary>
+    /// Gets the list of books the borrower has on loan,then finds the overdue ones.
+    /// Prints out these books.
+    /// </summary>
+    void BorrowerStats()
+    {
+        using var db = new LibraryContext();
+
+        List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
+
+        int onLoanCount = borrowedItems.Count;
+
+        // The container for the overdue books.
+        // Starts at 0 because the number is unknown at that time.
+        int overdueBooksCount = 0;
+
+        // Iterates through the borrowed items on the users account and finds all the overdue ones.
+        foreach (BorrowedItem borrowedItem in borrowedItems)
+        {
+            // Checks whether the due date has been past.
+            if (borrowedItem.DateDue < DateOnly.FromDateTime(DateTime.Now))
+            {
+                // Increments by one.
+                overdueBooksCount++;
+            }
+        }
+
+        // The message the user will see.
+        // Has a new line at the bottom for readability.
+        string borrowerStatsMessage = $"You have {onLoanCount} books on loan. {overdueBooksCount} overdue.";
+
+        Console.WriteLine(borrowerStatsMessage);
+    }
+
     public void BorrowerOptions()
     {
         const string menuName = "Borrower Menu";
 
-        string[] options = ["List borrowed books", "Issue a book", "Search books", "Logout"];
+        string borrowerLoginMessage = $"\nLogged in as {FName} {LName}";
 
-        Console.WriteLine(options.Count());  
+        Console.WriteLine(borrowerLoginMessage);
+
+        BorrowerStats();
+
+        string[] options = ["List borrowed books", "Issue a book", "Search books", "Logout"];
 
         bool loggedIn = true;
 
@@ -216,7 +250,7 @@ class CurrentBorrower
                 default:
                     loggedIn = false;
                     const string logoutMessage = "\nYou have been logged out.";
-                    Console.WriteLine();
+                    Console.WriteLine(logoutMessage);
                     break;
             }
         }
