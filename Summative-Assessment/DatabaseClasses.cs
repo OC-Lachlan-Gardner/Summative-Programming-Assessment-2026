@@ -53,6 +53,136 @@ public class Book
 
         Available = 0;
     }
+
+    /// <summary>
+    /// Prints the books out in a nice to read layout.
+    /// </summary>
+    /// <param name="books">The list of books to print</param>
+    public static void ListBooks(List<Book> books)
+    {
+        foreach (Book book in books)
+        {
+            // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
+            // Declared out here so that it can be used outside the if else statements.
+            string deweyNumber;
+            
+            string genre;
+            if (book.NonFiction == 1)
+            {
+                // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                deweyNumber = $"\n    Dewey Decimal Number: {book.DeweyNumber}";
+                genre = "Non-Fiction";
+            } else
+            {
+                // Means the dewey number won't add anything if the book is fiction.
+                deweyNumber = "";
+                genre = "Fiction";
+            }
+
+            string available;
+            if (book.Available == 1)
+            {
+                available = "Available";
+            } else
+            {
+                available = "Not Available";
+            }
+
+            // Index + 1 because it starts at 0.
+            string bookPrintStructure = 
+            $"""
+
+                {books.IndexOf(book) + 1}) {book.Title}
+                    Author: {book.AuthorFName} {book.AuthorLName}
+                    Genre: {genre}  {deweyNumber}
+                    Availablility: {available}
+            """;
+
+            Console.WriteLine(bookPrintStructure);
+        }
+    }
+
+    /// <summary>
+    /// Asks the user for a book id then returns it if it's valid.
+    /// </summary>
+    public static void ReturnBook()
+    {
+        const string BookIdPrompt = "Please enter the Id of the book you want to return: ";
+        const string InvalidIdMessage = "That isn't a valid book Id. ";
+        const string SuccessfulllyReturnedMessage = "Successfully returned book. ";
+
+        // Declares the variable that'll control the loop.
+        // Needs to be declared here so that it's in the right scope to affect the loop.
+        bool validInput = false;
+
+        // Declares the variable to hold the users input.
+        // Its declared here so it can be accessed out of the do while loop.
+        // Defaults to 0 so that it guarantees that an int is returned.
+        int userInput = 0;
+
+        // Does all the stuff inside the loop before evaluating the loop condition.
+        do
+        {
+            // Tries to convert the user input to int.
+            try
+            {
+                Console.Write(BookIdPrompt);
+
+                // Gets the users input and converts it to int.
+                // Throws an error if the users input ism't a number.
+                // This causes it to ask again.
+                userInput = Convert.ToInt32(Console.ReadLine());
+
+                var db = new LibraryContext();
+
+                // The forced non-null will trigger an error that'll get caught by the catch.
+                BorrowedItem borrowedBookToReturn = db.BorrowedItems.Find(userInput)!;
+                Book bookToReturn = db.Books.Find(borrowedBookToReturn.Id)!;
+
+                // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
+                // Declared out here so that it can be used outside the if else statements.
+                string deweyNumber;
+                
+                string genre;
+                if (bookToReturn.NonFiction == 1)
+                {
+                    // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                    deweyNumber = $"\n    Dewey Decimal Number: {bookToReturn.DeweyNumber}";
+                    genre = "Non-Fiction";
+                } else
+                {
+                    // Means the dewey number won't add anything if the book is fiction.
+                    deweyNumber = "";
+                    genre = "Fiction";
+                }
+                
+                string bookToReturnPrint = 
+                $"""
+                {bookToReturn.Title}
+                    Author: {bookToReturn.AuthorFName} {bookToReturn.AuthorLName}
+                    Genre: {genre}{deweyNumber}
+                """;
+
+                Console.WriteLine(bookToReturnPrint);
+
+                db.Remove(borrowedBookToReturn);
+
+                bookToReturn.Available = 1;
+
+                db.SaveChanges();
+
+                Console.WriteLine(SuccessfulllyReturnedMessage);
+
+                validInput = true;
+            } catch
+            {
+                Console.WriteLine(InvalidIdMessage);
+
+                // Repeats the loop again so the user has another chance to input a valid option. 
+                validInput = false;
+            }
+        } while (!validInput);
+    }
 }
 
 public class Borrower
@@ -75,7 +205,7 @@ public class BorrowedItem
 
     // How long the book can be on loan for in days.
     // The number of weeks * the number of days in a week.
-    const int LoanLength = WeeksOnLoan * DaysInAWeek;
+    public const int LoanLength = WeeksOnLoan * DaysInAWeek;
 
     // The primary key for the book being borrowed.
     public int Id { get; set; }
@@ -92,6 +222,11 @@ public class BorrowedItem
     // How many times the book has been renewed.
     // Defaults to 0.
     public int Renewed = 0;
+    // The max number of times a book can be renewed.
+    public const int MaxRenews = 2;
+    // How long the renewing adds to the loan.
+    // In this case it's just the same as the initial borrow length.
+    public const int RenewLength = LoanLength;
 
     // Gets the correct dates when creating the instance.
     public BorrowedItem()
@@ -122,6 +257,54 @@ class CurrentBorrower
         FName = currentBorrower.FName;
 
         LName = currentBorrower.LName;
+    }
+
+     /// <summary>
+    /// Gets the user to select a borrower based on Id.
+    /// </summary>
+    /// <returns>A Borrower as CurrentBorrower</returns>
+    public static CurrentBorrower ChooseBorrower()
+    {
+        const string BorrowerLoginQuestion = "Please enter your Borrower Id: ";
+        const string BorrowerLoginInvalidMessage = "Incorrect Id";
+
+        // Declares the variable that'll control the loop.
+        // Needs to be declared here so that it's in the right scope to affect the loop.
+        bool validInput;
+
+        // Declares the variable to hold the users input.
+        // Its declared here so it can be accessed out of the do while loop.
+        // Defaults to 0 so that it guarantees that an int is returned.
+        int userInput = 0;
+
+        // Does all the stuff inside the loop before evaluating the loop condition.
+        do
+        {
+            // Tries to convert the user input to int.
+            try
+            {
+                Console.Write(BorrowerLoginQuestion);
+                // Gets the users input and converts it to int.
+                // Throws an error if the users input ism't a number.
+                // This causes it to ask again.
+                userInput = Convert.ToInt32(Console.ReadLine());
+
+                CurrentBorrower currentBorrower = new CurrentBorrower(userInput);
+
+
+                return currentBorrower;
+            } catch
+            {
+                Console.WriteLine(BorrowerLoginInvalidMessage);
+
+                // Repeats the loop again so the user has another chance to input a valid option. 
+                validInput = false;
+            }
+        } while (!validInput);
+        
+        // Defaults to the first user on the list.
+        // Makes the compiler happy.
+        return new CurrentBorrower(1);
     }
 
     /// <summary>
@@ -178,7 +361,7 @@ class CurrentBorrower
                 borrowedBooks.Add(db.Books.Find(borrowedItem.Id));
             }
 
-            Program.ListBooks(borrowedBooks);
+            Book.ListBooks(borrowedBooks);
         } else
         {
             Console.WriteLine(NoBooksMessage);
@@ -219,6 +402,105 @@ class CurrentBorrower
         Console.WriteLine(borrowerStatsMessage);
     }
 
+    /// <summary>
+    /// Pushes the book due date back.
+    /// </summary>
+    /// <param name="bookId">The Id of the book to renew.</param>
+    void RenewBook(int bookId)
+    {
+        const string InvalidIdMessage = "That isn't a valid Id.";
+        const string MaxRenewsMessage = "You've already renewed the max amount of times.";
+
+        using var db = new LibraryContext();
+
+        try
+        {
+            // The book Id is being selected from a list of valid books, so it'll always be valid. Though it'll get caught by the catch loop anyway.
+            BorrowedItem bookToReturn = db.BorrowedItems.Find(bookId)!;
+
+            if (bookToReturn.Renewed <= BorrowedItem.MaxRenews)
+            {
+                // Pushes the due date back.
+                bookToReturn.DateDue.AddDays(BorrowedItem.RenewLength);
+                
+                // Increases the renew count by one.
+                bookToReturn.Renewed++;
+
+                db.SaveChanges();
+            }
+            else
+            {
+                Console.WriteLine(MaxRenewsMessage);
+            }
+        }
+        catch
+        {
+            Console.WriteLine(InvalidIdMessage);
+        }
+    }
+
+    void BookOperations()
+    {
+        const string OperationPrompt = "Enter the number of the book you would like to modify, or q to go back to Borrower Menu: ";
+        using var db = new LibraryContext();
+
+        List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
+
+        bool validInput = false;
+
+        int userInput;
+
+        while (!validInput)
+        {
+            // Tries to convert the user input to int.
+            try
+            {
+                Console.Write(OperationPrompt);
+
+                // Gets the users input and converts it to int.
+                // Throws an error if the users input ism't a number.
+                // This causes it to ask again.
+                userInput = Convert.ToInt32(Console.ReadLine());
+
+                // The forced non-null will trigger an error that'll get caught by the catch.
+                BorrowedItem borrowedBook = db.BorrowedItems.Find(userInput)!;
+                Book book = db.Books.Find(borrowedBook.Id)!;
+
+                // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
+                // Declared out here so that it can be used outside the if else statements.
+                string deweyNumber;
+                
+                string genre;
+                if (book.NonFiction == 1)
+                {
+                    // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                    deweyNumber = $"\n    Dewey Decimal Number: {book.DeweyNumber}";
+                    genre = "Non-Fiction";
+                } else
+                {
+                    // Means the dewey number won't add anything if the book is fiction.
+                    deweyNumber = "";
+                    genre = "Fiction";
+                }
+
+                // Index + 1 because it starts at 0.
+                string bookPrint = 
+                $"""
+                {book.Title}
+                    Author: {book.AuthorFName} {book.AuthorLName}
+                    Issued: {borrowedBook.DateIssued}
+                    Due: {borrowedBook.DateDue}
+                    Genre: {genre}{deweyNumber}
+                """;
+
+                Console.WriteLine(bookPrint);
+
+                // Needs to print out the list of options then take an input.
+                string[] bookOptions = ["Renew book"];
+            
+        }
+    }
+
     public void BorrowerOptions()
     {
         const string menuName = "Borrower Menu";
@@ -240,6 +522,7 @@ class CurrentBorrower
             {
                 case 1:
                     ListBorrowerBooks();
+                    BookOperations();
                     break;
                 case 2:
                     BorrowBook();
