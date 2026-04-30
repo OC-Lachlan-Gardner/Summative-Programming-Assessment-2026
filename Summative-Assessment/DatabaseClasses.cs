@@ -359,11 +359,14 @@ public class Borrower
     }
 }
 
+/// <summary>
+/// The object that represents the BorrowedItems table.
+/// </summary>
 public class BorrowedItem
 {
     // How many weeks the book can be borrowed for.
     const int WeeksOnLoan = 2;
-    
+    // So the weeks on loan can be changed easier than having to add 7.
     const int DaysInAWeek = 7;
 
     // How long the book can be on loan for in days.
@@ -379,19 +382,26 @@ public class BorrowedItem
     // The date the book was issued.
     public DateOnly DateIssued { get; set; }
 
-    // The date is due back
+    // The date is due back.
+    // It will become DateIssued + LoanLength.
+    // I would declare it here, but EFCore can't seem to bind it properly when I do that (probably a skill issue).
     public DateOnly DateDue { get; set; }
 
     // How many times the book has been renewed.
     // Defaults to 0.
+    // I would set it here but EFCore like that.
     public int Renewed { get; set; }
+    const int RenewedDefault = 0;
+    
     // The max number of times a book can be renewed.
     public const int MaxRenews = 2;
     // How long the renewing adds to the loan.
     // In this case it's just the same as the initial borrow length.
     public const int RenewLength = LoanLength;
 
-    // Gets the correct dates when creating the instance.
+    /// <summary>
+    /// Gets the correct dates when creating the instance, and adds the loan length to it for date due, then sets the renew count to 0.
+    /// </summary>
     public BorrowedItem()
     {
         DateIssued = DateOnly.FromDateTime(DateTime.Now);
@@ -399,7 +409,7 @@ public class BorrowedItem
         // Adds the loan length to the current date.
         DateDue = DateIssued.AddDays(LoanLength);
 
-        Renewed = 0;
+        Renewed = RenewedDefault;
     }
 }
 
