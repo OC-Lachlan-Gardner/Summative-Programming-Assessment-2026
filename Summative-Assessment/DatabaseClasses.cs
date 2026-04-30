@@ -192,6 +192,51 @@ public class Book
     }
 
     /// <summary>
+    /// Prints a single book, unlike the previous method.`
+    /// </summary>
+    /// <param name="book">The book to print.</param>
+    public static void ListBorrowedBooks(Book book)
+    {
+        // Connects to the database.
+        using var db = new LibraryContext();
+
+        // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
+        // Declared out here so that it can be used outside the if else statements.
+        string deweyNumber;
+
+        // Retrieves the book from the BorrowedItems table using the Id of the book it recieves.
+        BorrowedItem borrowedBook = db.BorrowedItems.Find(book.Id);
+        
+        // Turns the int that the book property has and turns it into a string.
+        string genre;
+        if (book.NonFiction == trueValue)
+        {
+            // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+            deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
+            genre = NonFictionLabel;
+        } else
+        {
+            // Means the dewey number won't add anything if the book is fiction.
+            deweyNumber = "";
+            genre = FictionLabel;
+        }
+
+        // Index + 1 because it starts at 0.
+        string bookPrintStructure = 
+        $"""
+
+            {book.Title}
+                Book Id: {book.Id}
+                Author: {book.AuthorFName} {book.AuthorLName}
+                Genre: {genre}{deweyNumber}
+                Issued: {borrowedBook.DateIssued}
+                Due: {borrowedBook.DateDue}
+        """;
+
+        Console.WriteLine(bookPrintStructure);
+    }
+
+    /// <summary>
     /// Asks the user for a book id then returns it if it's valid.
     /// </summary>
     public static void ReturnBook()
@@ -232,6 +277,7 @@ public class Book
                 // Declared out here so that it can be used outside the if else statements.
                 string deweyNumber;
                 
+                // Turns the int into an easily readable string.
                 string genre;
                 if (bookToReturn.NonFiction == trueValue)
                 {
@@ -254,14 +300,18 @@ public class Book
 
                 Console.WriteLine(bookToReturnPrint);
 
+                // Removes the book from the borrowed items table.
                 db.Remove(borrowedBookToReturn);
 
+                // Marks the book as available to borrow again.
                 bookToReturn.Available = trueValue;
 
+                // Updates the db.
                 db.SaveChanges();
 
                 Console.WriteLine(SuccessfulllyReturnedMessage);
 
+                // Tells the loop that the user has entered a valid input so it can stop.
                 validInput = true;
             } catch
             {
@@ -436,7 +486,7 @@ class CurrentBorrower
         // Retrieves the borrower with the Id from the table.
         Borrower currentBorrower = db.Borrowers.Find(BorrowerId);
 
-        // No idea why FName is null but LNsme isn'r.
+        // No idea why FName is null but LName isn'r.
         FName = currentBorrower.FName;
 
         LName = currentBorrower.LName;
@@ -582,20 +632,25 @@ class CurrentBorrower
     /// </summary>
     void BorrowerStats()
     {
+        // Connects to the BorrowedItems to get the stats of the borrower.
         using var db = new LibraryContext();
 
+        // Gets the borrowedItems that were borrowed by the same borrower.
         List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
 
+        // Finds how many books in the list.
         int onLoanCount = borrowedItems.Count;
+
+        const int OverdueBooksCountDefault = 0;
 
         // The container for the overdue books.
         // Starts at 0 because the number is unknown at that time.
-        int overdueBooksCount = 0;
+        int overdueBooksCount = OverdueBooksCountDefault;
 
         // Iterates through the borrowed items on the users account and finds all the overdue ones.
         foreach (BorrowedItem borrowedItem in borrowedItems)
         {
-            // Checks whether the due date has been past.
+            // Checks whether the due date of the borrowed item has been past.
             if (borrowedItem.DateDue < DateOnly.FromDateTime(DateTime.Now))
             {
                 // Increments by one.
@@ -604,7 +659,6 @@ class CurrentBorrower
         }
 
         // The message the user will see.
-        // Has a new line at the bottom for readability.
         string borrowerStatsMessage = $"You have {onLoanCount} books on loan. {overdueBooksCount} overdue.";
 
         Console.WriteLine(borrowerStatsMessage);
@@ -618,8 +672,10 @@ class CurrentBorrower
     {
         const string InvalidIdMessage = "That isn't a valid Id.";
         const string MaxRenewsMessage = "You've already renewed the max amount of times.";
+
         string RenewMessage = $"Your book has been renewed for {BorrowedItem.LoanLength} more days.";
 
+        // Connects to the database to find the borrowed items with that book Id.
         using var db = new LibraryContext();
 
         try
@@ -627,23 +683,25 @@ class CurrentBorrower
             // The book Id is being selected from a list of valid books, so it'll always be valid. Though it'll get caught by the catch loop anyway.
             BorrowedItem bookToReturn = db.BorrowedItems.Find(bookId)!;
 
+            // Only renews if the user hasn't renewed too many times already.
             if (bookToReturn.Renewed <= BorrowedItem.MaxRenews)
             {
                 // Pushes the due date back.
                 bookToReturn.DateDue = bookToReturn.DateDue.AddDays(BorrowedItem.RenewLength);
-                
-                Console.WriteLine(bookToReturn.DateDue);
 
                 // Increases the renew count by one.
                 bookToReturn.Renewed++;
-                Console.WriteLine(bookToReturn.Renewed);
 
+                // Saves the changes to the database.
                 db.SaveChanges();
 
+                // Tells the user they've successfully renewed and says how long.
                 Console.WriteLine(RenewMessage);
             }
             else
             {
+                // Tells the user they've reached the max renew count and can't renew anymore.
+                // Means they won't be confused when they can't renew.
                 Console.WriteLine(MaxRenewsMessage);
             }
         }
@@ -652,9 +710,13 @@ class CurrentBorrower
             Console.WriteLine(InvalidIdMessage);
         }
 
+        // Saves any changes made to the tables.
         db.SaveChanges();
     }
 
+    /// <summary>
+    /// What actions the user can take after listing the books.
+    /// </summary>
     void BookOperations()
     {
         const string OperationPrompt = "Enter the number of the book you would like to renew, or 0 to go back to Borrower Menu: ";
@@ -663,16 +725,22 @@ class CurrentBorrower
         /// The number the user has to enter to quit the book operations menu.
         const int quitOption = 0;
 
+        // Connects to the database to find the borrowed items.
         using var db = new LibraryContext();
 
         // Collects all the books borrowed by the current borrower.
         List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
 
+        // Allows the loop to start.
+        // It's false because there isn't any input right now.
         bool validInput = false;
 
-        // Defaults to -1 because it won't get in the way.
-        int userInput = -1;
+        // Defaults to -1 because it will cause an error if it isn't changed.
+        // This will make the loop repeat so the user can enter a proper number.
+        const int UserInputDefault = -1;
+        int userInput = UserInputDefault;
 
+        // Loops until the user enters a valid input.
         while (!validInput)
         {
             // Tries to convert the user input to int.
@@ -685,63 +753,87 @@ class CurrentBorrower
                 // This causes it to ask again.
                 userInput = Convert.ToInt32(Console.ReadLine());
 
+                // userInput minus 1 so it matches up to the list index, which starts at 0.
                 BorrowedItem chosenBook = borrowedItems[userInput - 1];
 
-                // The forced non-null will trigger an error that'll get caught by the catch.
-                List<Book> book = new List<Book> {db.Books.Find(chosenBook.Id)!};
+                // Gets all the information about the book after getting its Id from the BorrowedItems table.
+                // Getting it this way means that it can't accidentally get a book that hasn't been borrowed.
+                // The forced non-null will trigger an error that'll get caught by the catch, causing the loop to go again.
+                Book book = db.Books.Find(chosenBook.Id)!;
 
+                // Prints the book in a nice way.
                 Book.ListBorrowedBooks(book);
 
                 // Needs to print out the list of options then take an input.
                 string[] bookOptions = ["Renew book", "Cancel"];
-                string menuName = "Book Menu";
+                const string menuName = "Book Menu";
 
+                // Makes a menu with the options from the list.
                 int optionChosen = Program.Menu(bookOptions, menuName);
 
+                // What to do based on the option chosen.
                 switch (optionChosen)
                 {
                     case 1:
+                        // The user has chosen to renew, so it gets the Id from the book they initially chose and passes it to the Renew function.
                         int bookToRenew = chosenBook.Id;
 
+                        // Renews the book if it can be renewed.
                         RenewBook(bookToRenew);
                         break;
                     case 2:
+                        // Exits the book operations function and returns to the borrowers menu.
                         return;
                     default:
                         Console.WriteLine(InvalidOptionMessage);
+                        // Exits back into the loop.
                         break;
-                }
-
-                
+                }                
             }
             catch
             {   
+                // If the user has chosen to quit the Book Operations menu.
+                // Goes back to the Borrowers menu.
                 if (userInput == quitOption)
                 {
                     return;
                 }
+                // If the input wasn't a book number or the quit option.
+                // It's not an else because if the if statement is true then it'll quit the function without the chance to get to this place anyway.
                 Console.WriteLine(InvalidOptionMessage);
             }
         }
     }
 
+    /// <summary>
+    /// What options the borrower has.
+    /// Takes their input and carries out the option selected, if its valid.
+    /// </summary>
     public void BorrowerOptions()
     {
+        // What to print at the top of the menu.
+        // Gives the user an idea of what the menu is about.
         const string menuName = "Borrower Menu";
 
+        // Small informational message to feel responsive to the user.
         string borrowerLoginMessage = $"\nLogged in as {FName} {LName}";
 
         Console.WriteLine(borrowerLoginMessage);
 
+        // Shows the borrower a small view of their current loans.
         BorrowerStats();
 
+        // What options are available to the user in this menu.
         string[] options = ["List borrowed books", "Issue a book", "Search books", "Logout"];
 
+        // Controls the loop.
         bool loggedIn = true;
 
         while (loggedIn) {
+            // Prints a menu and stores the option they chose.
             int optionChosen = Program.Menu(options, menuName);
 
+            // Acting on their choice.
             switch (optionChosen)
             {
                 case 1:
@@ -755,9 +847,13 @@ class CurrentBorrower
                     BorrowBook();
                     break;
                 case 3:
+                    // So they can search for books without having to exit the borrower menu.
+                    // In case they quickly want to search for something, maybe the what book in the series it is.
                     Book.SearchBooks();
                     break;
                 default:
+                    // Exits the loop.
+                    // This will kick it back into the main menu.
                     loggedIn = false;
                     const string logoutMessage = "\nYou have been logged out.";
                     Console.WriteLine(logoutMessage);
