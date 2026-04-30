@@ -1,5 +1,6 @@
 using System.Dynamic;
 using System.Reflection;
+using System.Collections;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Sqlite;
 
@@ -22,6 +23,14 @@ public class LibraryContext: DbContext
     {
         // Needs to be the whole path.
         optionsBuilder.UseSqlite("Data Source=/home/Lachlan/Summative-Programming-Assessment-2026/Summative-Programming-Assessment-2026/Summative-Assessment/Library.db");
+    }
+}
+
+public class BookSortee : IComparer
+{
+    public int Compare(object x, object y)
+    {
+        return new CaseInsensitiveComparer().Compare(((Book)x).AuthorLName, ((Book)y).AuthorLName);
     }
 }
 
