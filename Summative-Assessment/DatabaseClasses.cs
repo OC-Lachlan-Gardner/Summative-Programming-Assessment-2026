@@ -336,18 +336,23 @@ public class Borrower
     /// </summary>
     public static void AddNewBorrower()
     {
+        // Prompts for the user when they're creating the borrower.
         const string AddBorrowerFNameMessage = "Please enter your first name: ";
         const string AddBorrowerLNameMessage = "Please enter your last name: ";
 
+        // Creates the new instance and then fills it in.
         Borrower newBorrower = new Borrower();
         newBorrower.FName = Program.CheckUserString(AddBorrowerFNameMessage);
         newBorrower.LName = Program.CheckUserString(AddBorrowerLNameMessage);
 
+        // Connects to the database so the new borrower can be added.
         using var db = new LibraryContext();
 
+        // Adds the new borrower then saves the database.
         db.Borrowers.Add(newBorrower);
         db.SaveChanges();
 
+        // Lets the user know the creation was successful and provedes some basic information.
         string successMessage = $"\nCreated new borrower \nName: {newBorrower.FName} {newBorrower.LName} \nId: {newBorrower.Id}";
 
         Console.WriteLine(successMessage);
