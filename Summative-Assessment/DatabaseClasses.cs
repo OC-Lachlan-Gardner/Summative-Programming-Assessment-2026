@@ -166,7 +166,7 @@ public class Book
             if (book.NonFiction == trueValue)
             {
                 // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-                deweyNumber = $"\n    Dewey Decimal Number: {book.DeweyNumber}";
+                deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
                 genre = NonFictionLabel;
             } else
             {
@@ -409,10 +409,14 @@ public class BorrowedItem
         // Adds the loan length to the current date.
         DateDue = DateIssued.AddDays(LoanLength);
 
+        // Sets the renew count to 0.
         Renewed = RenewedDefault;
     }
 }
 
+/// <summary>
+/// The loggeed in borrower.
+/// </summary>
 class CurrentBorrower
 {
     public int BorrowerId { get; set; }
@@ -421,14 +425,18 @@ class CurrentBorrower
 
     public string LName { get; set; }
 
+    // Gets the borrower information based on the Id.
     public CurrentBorrower(int borrowerId)
     {
         BorrowerId = borrowerId;
 
+        // Connects to the databasse so data can be gotten from the Borrowers table.
         using var db = new LibraryContext();
 
+        // Retrieves the borrower with the Id from the table.
         Borrower currentBorrower = db.Borrowers.Find(BorrowerId);
 
+        // No idea why FName is null but LNsme isn'r.
         FName = currentBorrower.FName;
 
         LName = currentBorrower.LName;
@@ -449,8 +457,7 @@ class CurrentBorrower
 
         // Declares the variable to hold the users input.
         // Its declared here so it can be accessed out of the do while loop.
-        // Defaults to 0 so that it guarantees that an int is returned.
-        int userInput = 0;
+        int userInput;
 
         // Does all the stuff inside the loop before evaluating the loop condition.
         do
@@ -464,21 +471,24 @@ class CurrentBorrower
                 // This causes it to ask again.
                 userInput = Convert.ToInt32(Console.ReadLine());
 
+                // Creates a new instance of CurrentBorrower to store the current users details in.
                 CurrentBorrower currentBorrower = new CurrentBorrower(userInput);
 
-
+                // Exits the method with the newly created currentBorrower.
                 return currentBorrower;
             } catch
             {
+                // In case the Id doesn't work.
                 Console.WriteLine(BorrowerLoginInvalidMessage);
 
                 // Repeats the loop again so the user has another chance to input a valid option. 
                 validInput = false;
             }
+        // Keeps going until the user enters a correct Id.
         } while (!validInput);
         
         // Defaults to the first user on the list.
-        // Makes the compiler happy.
+        // Makes the compiler happy, can't actually happen since the loop won't ecit until a valid input is entered, which would lead to a currentBorrower being returned.
         return new CurrentBorrower(1);
     }
 
@@ -487,16 +497,15 @@ class CurrentBorrower
     /// </summary>
     public void BorrowBook()
     {
-        const string InvalidBookIdMessage = "That isn't a valid book Id";
+        const string InvalidBookIdMessage = "\nThat isn't a valid book Id";
         const string BookIdPrompt = "What is the Id of the book you want to issue: ";
 
-        int bookId;
 
         try
         {
             Console.Write(BookIdPrompt);
 
-            bookId = Convert.ToInt32(Console.ReadLine());
+            int bookId = Convert.ToInt32(Console.ReadLine());
 
             using var db = new LibraryContext();
 
@@ -512,6 +521,12 @@ class CurrentBorrower
             db.BorrowedItems.Add(borrowedBook);
 
             db.SaveChanges();
+
+            // The forced non-null will trigger an error that'll get caught by the catch.
+            List<Book> book = new List<Book> {db.Books.Find(borrowedBook.Id)!};
+
+            // Prints the book so the user can see what they issued.
+            Book.ListBorrowedBooks(book);
         } catch
         {
             Console.WriteLine(InvalidBookIdMessage);
@@ -525,28 +540,38 @@ class CurrentBorrower
     public bool ListBorrowerBooks()
     {
         const string NoBooksMessage = "You have no books on loan.";
+        const int MinCount = 0;
 
+        // Connects to the BorrowedItems table so it can get the books on loan.
         using var db = new LibraryContext();
 
+        // Finds all the books that were borrowed by the person with the currentBorrowers Id.
         List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
 
         // If the borrower has books on loan.
-        if (borrowedItems.Count() > 0)
+        if (borrowedItems.Count() > MinCount)
         {
+            // Makes a new list to store the books in once they've been found.
             List<Book> borrowedBooks = new List<Book> {};
 
+            // Goes through the borrowed books to find the full information.
             foreach (BorrowedItem borrowedItem in borrowedItems)
             {
+                // Adds each book to the list.
+                // It won't be null because the books can't be issued without existing, esoecially since there isn't a way to remove Books entries.
                 borrowedBooks.Add(db.Books.Find(borrowedItem.Id));
             }
 
+            // Prints out the list.
             Book.ListBorrowedBooks(borrowedBooks);
 
+            // Says there were books to return.
             return true;
         } else
         {
             Console.WriteLine(NoBooksMessage);
 
+            // Says there were no books to list.
             return false;
         }
     }
