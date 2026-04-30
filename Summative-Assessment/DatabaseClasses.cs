@@ -3,13 +3,18 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Sqlite;
 
+/// <summary>
+/// The database, represented as class.
+/// </summary>
 public class LibraryContext: DbContext
 {
     // Links the table Books with instances of the class Book.
     public DbSet<Book> Books { get; set; }
 
+    // Links the table Borrowers with instsnces of the class Borrowers.
     public DbSet<Borrower> Borrowers { get; set; }
 
+    // Links the tabke BorrowedItems with instances of the class BorrowedItem.
     public DbSet<BorrowedItem> BorrowedItems { get; set; }
 
     // Where the database is located.
@@ -20,26 +25,52 @@ public class LibraryContext: DbContext
     }
 }
 
+/// <summary>
+/// Represents individual items in the Books table.
+/// </summary>
 public class Book
 {
+    // The PK of the Books table.
+    // EFCore automatically marks it as the autonumber because it's called Id.
     public int Id { get; set; }
+
+    // These all match the names of the fields in the Books table.
+    // This lets EFCore write the data into the correct places.
     public string Title { get; set; }
 
     public string AuthorFName { get; set; }
 
     public string AuthorLName { get; set; }
 
-    //* Defaults to 0 on null.
-    //* 0 means it isn't non-fiction.
+    //* In sqlite, booleans aren't a thing, so instead it's an int: 1 for true, 0 for false.
     public int NonFiction { get; set; } 
 
-    //! Only use if the book is non-fiction. Leave empty otherwise.
-    public float DeweyNumber { get; set; }
+    // Can be left null if it's a fiction book.
+    public float? DeweyNumber { get; set; }
 
+    // Bool.
     public int Available { get; set; }
 
-    // Constructor for instances.
-    public Book(string title, string authorFName, string authorLName, int nonFiction, float deweyNumber)
+    // What to call books that are non=fiction or fiction.
+    const string NonFictionLabel = "Non-Fiction";
+    const string FictionLabel = "Fiction";
+    const string AvailableLabel = "Available";
+    const string UnavailableLabel = "Not Available";
+
+    // What integer counts as true.
+    const int trueValue = 1;
+
+    const int AvailableDefault = 1;
+
+    /// <summary>
+    /// Create a book instance.
+    /// </summary>
+    /// <param name="title">Title of the book.</param>
+    /// <param name="authorFName">Author's first name.</param>
+    /// <param name="authorLName">Author's last name.</param>
+    /// <param name="nonFiction">Whether the book is non-fiction. 1 for non-fiction, 0 for fiction.</param>
+    /// <param name="deweyNumber">The dewey decimal number of the book if it's non-fiction. If it isn't just leave blank.</param>
+    public Book(string title, string authorFName, string authorLName, int nonFiction, float? deweyNumber)
     {
         Title = title;
 
@@ -49,9 +80,11 @@ public class Book
 
         NonFiction = nonFiction;
 
+        // Can be null.
         DeweyNumber = deweyNumber;
 
-        Available = 0;
+        // The book hasn't been borrowed, so it's available.
+        Available = AvailableDefault;
     }
 
     /// <summary>
@@ -60,35 +93,42 @@ public class Book
     /// <param name="books">The list of books to print</param>
     public static void ListBooks(List<Book> books)
     {
+        // Iterates through each book in the list to print it out in a nice way.
         foreach (Book book in books)
         {
             // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
             // Declared out here so that it can be used outside the if else statements.
             string deweyNumber;
             
+            // Needs to be interpereted from the "bool" the database provides.
             string genre;
-            if (book.NonFiction == 1)
+
+            // Checks the books genre.
+            if (book.NonFiction == trueValue)
             {
                 // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                // It cam't be declared as a constant, I swear it isn't a magic number.
                 deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
-                genre = "Non-Fiction";
+                genre = NonFictionLabel;
             } else
             {
                 // Means the dewey number won't add anything if the book is fiction.
                 deweyNumber = "";
-                genre = "Fiction";
+                genre = FictionLabel;
             }
 
+            // Needs to interperet the int provided by the database.
             string available;
-            if (book.Available == 1)
+            if (book.Available == trueValue)
             {
-                available = "Available";
+                available = AvailableLabel;
             } else
             {
-                available = "Not Available";
+                available = UnavailableLabel;
             }
 
             // Index + 1 because it starts at 0.
+            // Tbe deweyNumber is empty if the book is fiction.
             string bookPrintStructure = 
             $"""
 
@@ -103,8 +143,13 @@ public class Book
         }
     }
 
+    /// <summary>
+    /// Prints a list of the books the borrower has on their account.
+    /// </summary>
+    /// <param name="books">The books to print.</param>
     public static void ListBorrowedBooks(List<Book> books)
     {
+        // Connects to the database.
         using var db = new LibraryContext();
 
         foreach (Book book in books)
@@ -113,19 +158,21 @@ public class Book
             // Declared out here so that it can be used outside the if else statements.
             string deweyNumber;
 
+            // Retrieves the book from the BorrowedItems table using the Id of the book it recieves.
             BorrowedItem borrowedBook = db.BorrowedItems.Find(book.Id);
             
+            // Turns the int that the book property has and turns it into a string.
             string genre;
-            if (book.NonFiction == 1)
+            if (book.NonFiction == trueValue)
             {
                 // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
                 deweyNumber = $"\n    Dewey Decimal Number: {book.DeweyNumber}";
-                genre = "Non-Fiction";
+                genre = NonFictionLabel;
             } else
             {
                 // Means the dewey number won't add anything if the book is fiction.
                 deweyNumber = "";
-                genre = "Fiction";
+                genre = FictionLabel;
             }
 
             // Index + 1 because it starts at 0.
@@ -155,12 +202,11 @@ public class Book
 
         // Declares the variable that'll control the loop.
         // Needs to be declared here so that it's in the right scope to affect the loop.
-        bool validInput = false;
+        bool validInput;
 
         // Declares the variable to hold the users input.
         // Its declared here so it can be accessed out of the do while loop.
-        // Defaults to 0 so that it guarantees that an int is returned.
-        int userInput = 0;
+        int userInput;
 
         // Does all the stuff inside the loop before evaluating the loop condition.
         do
@@ -175,6 +221,7 @@ public class Book
                 // This causes it to ask again.
                 userInput = Convert.ToInt32(Console.ReadLine());
 
+                // Connects to the database.
                 var db = new LibraryContext();
 
                 // The forced non-null will trigger an error that'll get caught by the catch.
@@ -186,16 +233,16 @@ public class Book
                 string deweyNumber;
                 
                 string genre;
-                if (bookToReturn.NonFiction == 1)
+                if (bookToReturn.NonFiction == trueValue)
                 {
                     // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
                     deweyNumber = $"\n    Dewey Decimal Number: {bookToReturn.DeweyNumber}";
-                    genre = "Non-Fiction";
+                    genre = NonFictionLabel;
                 } else
                 {
                     // Means the dewey number won't add anything if the book is fiction.
                     deweyNumber = "";
-                    genre = "Fiction";
+                    genre = FictionLabel;
                 }
                 
                 string bookToReturnPrint = 
@@ -209,7 +256,7 @@ public class Book
 
                 db.Remove(borrowedBookToReturn);
 
-                bookToReturn.Available = 1;
+                bookToReturn.Available = trueValue;
 
                 db.SaveChanges();
 
@@ -225,17 +272,86 @@ public class Book
             }
         } while (!validInput);
     }
+
+    /// <summary>
+    /// Searches through AuthorFName, AuthorLName, and Title in the Books table and lists them.
+    /// </summary>
+    public static void SearchBooks()
+    {
+        // Connects to the database.
+        using var db = new LibraryContext();
+
+        // The strings to print to the user on certain interactions.
+        // No magic numbers here.
+        const string SearchPrompt = "Enter the keyword you want to search for: ";
+        const string NoBooksMessage = "\nThere are no books that match the search term.";
+
+        // The minimum count for the list to print anything.
+        const int MinCount = 0;
+
+        // What the user is wanting to search for.
+        string searchFor = Program.CheckUserString(SearchPrompt);
+
+        // What is avtually passed into the Where function.
+        // The % signs on either side means it is looking for that term in any place in the string.
+        var keyword = $"%{searchFor}%";
+
+        // Seatches for matches in the titles and author names.
+        List<Book> booksTitles = db.Books.Where(b => EF.Functions.Like(b.Title, keyword)).ToList();
+        List<Book> booksAuthorsFName = db.Books.Where(b => EF.Functions.Like(b.AuthorFName, keyword)).ToList();
+        List<Book> booksAuthorsLName = db.Books.Where(b => EF.Functions.Like(b.AuthorLName, keyword)).ToList();
+        
+        // Adds all the results together without duplicates.
+        List<Book> searchResults = booksTitles.Union(booksAuthorsLName).Union(booksAuthorsFName).ToList();
+
+        // Only prints out the books if there are books to print.
+        if (searchResults.Count > MinCount)
+        {
+            Book.ListBooks(searchResults);
+        }
+        else
+        {
+            Console.WriteLine(NoBooksMessage);
+        }
+    }
 }
 
+/// <summary>
+/// The object that represents the Borrower table.
+/// </summary>
 public class Borrower
 {
-    // Makes Id an autonumber
+    // Makes Id an autonumber because EFCore automatically knows Id is an autonumber.
     public int Id { get; set; }
+
     // First name of the borrower.
     public string FName { get; set; }
 
     // Last name of the borrower.
     public string LName { get; set; }
+
+    /// <summary>
+    /// Makes a new Borrower and adds it to the Borrowers table.
+    /// It then saves the table.
+    /// </summary>
+    public static void AddNewBorrower()
+    {
+        const string AddBorrowerFNameMessage = "Please enter your first name: ";
+        const string AddBorrowerLNameMessage = "Please enter your last name: ";
+
+        Borrower newBorrower = new Borrower();
+        newBorrower.FName = Program.CheckUserString(AddBorrowerFNameMessage);
+        newBorrower.LName = Program.CheckUserString(AddBorrowerLNameMessage);
+
+        using var db = new LibraryContext();
+
+        db.Borrowers.Add(newBorrower);
+        db.SaveChanges();
+
+        string successMessage = $"\nCreated new borrower \nName: {newBorrower.FName} {newBorrower.LName} \nId: {newBorrower.Id}";
+
+        Console.WriteLine(successMessage);
+    }
 }
 
 public class BorrowedItem
@@ -387,7 +503,11 @@ class CurrentBorrower
         }
     }
 
-    public void ListBorrowerBooks()
+    /// <summary>
+    /// Lists the borrowers books they have on loan.
+    /// </summary>
+    /// <returns>True if the borrower has books, false if the borrower has no books.</returns>
+    public bool ListBorrowerBooks()
     {
         const string NoBooksMessage = "You have no books on loan.";
 
@@ -406,9 +526,13 @@ class CurrentBorrower
             }
 
             Book.ListBorrowedBooks(borrowedBooks);
+
+            return true;
         } else
         {
             Console.WriteLine(NoBooksMessage);
+
+            return false;
         }
     }
 
@@ -581,14 +705,17 @@ class CurrentBorrower
             switch (optionChosen)
             {
                 case 1:
-                    ListBorrowerBooks();
-                    BookOperations();
+                    // Checks if the user has books and asks the user to select a book if there are any.
+                    if (ListBorrowerBooks())
+                    {
+                        BookOperations();
+                    }
                     break;
                 case 2:
                     BorrowBook();
                     break;
                 case 3:
-                    Program.SearchBooks();
+                    Book.SearchBooks();
                     break;
                 default:
                     loggedIn = false;

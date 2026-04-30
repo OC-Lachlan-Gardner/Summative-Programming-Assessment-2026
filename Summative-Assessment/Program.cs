@@ -46,7 +46,7 @@ class Program
     /// </summary>
     /// <param name="promptMessage">What to print to the user as a prompt.</param>
     /// <returns>The not null input.</returns>
-    static string CheckUserString(string promptMessage)
+    public static string CheckUserString(string promptMessage)
     {
         string? userInput;
 
@@ -88,56 +88,6 @@ class Program
         }
     }
 
-    /// <summary>
-    /// Makes a new Borrower and adds it to the Borrowers table.
-    /// It then saves the table.
-    /// </summary>
-    static void AddNewBorrower()
-    {
-        const string AddBorrowerFNameMessage = "Please enter your first name: ";
-        const string AddBorrowerLNameMessage = "Please enter your last name: ";
-
-        Borrower newBorrower = new Borrower();
-        newBorrower.FName = CheckUserString(AddBorrowerFNameMessage);
-        newBorrower.LName = CheckUserString(AddBorrowerLNameMessage);
-
-        using var db = new LibraryContext();
-
-        db.Borrowers.Add(newBorrower);
-        db.SaveChanges();
-    }
-
-    /// <summary>
-    /// Searches through AuthorFName, AuthorLName, and Title in the Books table and lists them.
-    /// </summary>
-    public static void SearchBooks()
-    {
-        using var db = new LibraryContext();
-
-        const string SearchPrompt = "Enter the keyword you want to search for: ";
-        const string NoBooksMessage = "There are no books that match the search term.";
-        // The minimum count for the list to print anything.
-        const int MinCount = 0;
-
-        string searchFor = CheckUserString(SearchPrompt);
-
-        var keyword = $"%{searchFor}%";
-
-        List<Book> booksTitles = db.Books.Where(b => EF.Functions.Like(b.Title, keyword)).ToList();
-        List<Book> booksAuthorsFName = db.Books.Where(b => EF.Functions.Like(b.AuthorFName, keyword)).ToList();
-        List<Book> booksAuthorsLName = db.Books.Where(b => EF.Functions.Like(b.AuthorLName, keyword)).ToList();
-        
-        List<Book> searchResults = booksTitles.Union(booksAuthorsLName).Union(booksAuthorsFName).ToList();
-
-        if (searchResults.Count > MinCount)
-        {
-            Book.ListBooks(searchResults);
-        }
-        else
-        {
-            Console.WriteLine(NoBooksMessage);
-        }
-    }
 
     /// <summary>
     /// Prints out a list of options as a menu.
@@ -228,11 +178,11 @@ class Program
                     break;
                 case 2:
                     // Adds a new borrower to the borrowers table.
-                    AddNewBorrower();
+                    Borrower.AddNewBorrower();
                     break;
                 case 3:
                     // Searches through the Books table to find matching books.
-                    SearchBooks();
+                    Book.SearchBooks();
                     break;
                 case 4:
                     // Returns (as in returning a loan to the library) a book based on the Id.
