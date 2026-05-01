@@ -3,6 +3,9 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Sqlite;
 
+/// <summary>
+/// The main program.
+/// </summary>
 class Program
 {
     const string InvalidInputMessage = "That isn't a valid option.";
@@ -13,7 +16,7 @@ class Program
     /// </summary>
     static void PrintWelcomeMessage()
     {
-        // Adds a newline to the end of the message to add some clarity between the parts of the program.
+        // Adds a newline to the start of the message to add some clarity between the parts of the program.
         const string Message = "\nWelcome to The Library.";
 
         Console.WriteLine(Message);
@@ -23,14 +26,15 @@ class Program
     /// Checks the user's input is within the bounds of the options array.
     /// </summary>
     /// <param name="input">What the user has entered. This is what gets checked.</param>
-    /// <param name="options">The options array. Used to get the lenght.</param>
-    /// <returns>True if the input is valid.</returns>
+    /// <param name="options">The options array. Used to get the length.</param>
+    /// <returns>True if the input is valid. False if not.</returns>
     static bool CheckOptionInput(int input, string[] options)
     {
         const string InvalidInputMessage = "That isn't a valid option.";
-        // The lowest number of the options.
+        // The lowest number of the options while still being valid.
         const int MinInput = 1;
 
+        // Check whether the option is within the valid range.
         if (input <= options.Count() && input >= MinInput)
         {
             return true;
@@ -48,6 +52,7 @@ class Program
     /// <returns>The not null input.</returns>
     public static string CheckUserString(string promptMessage)
     {
+        // Puts the variable in the right scope so it can be accessed outside the loop.
         string? userInput;
 
         do
@@ -55,7 +60,7 @@ class Program
             Console.Write(promptMessage);
 
             // Gets the users input.
-            // If it's null, then it'll throw an error.
+            // If it's null, then it'll get caught by the if statement.
             userInput = Console.ReadLine();
 
             // Prints the invalid message if the user didn't enter anything.            if (userInput == "")
@@ -74,7 +79,7 @@ class Program
     /// <summary>
     /// Prints each of the options and its option number.
     /// </summary>
-    /// <returns>The option number.</returns>
+    /// <returns>The option number the user has input.</returns>
     public static void PrintMenuOptions(string[] options)
     {
         // Iterates through the options, printing each option and its option number.
@@ -82,6 +87,7 @@ class Program
         {
             // The message to print.
             // Index + 1 is to offset the index starting from 0.
+            // The weird spacing is to make it look nice in the terminal.
             string message = $"    {options.IndexOf(option) + 1}) {option}.";
 
             Console.WriteLine(message);
@@ -96,7 +102,7 @@ class Program
     /// <returns>The option number of the option they select.</returns>
     public static int Menu(string[] options, string menuName)
     {
-        // Adds a space.
+        // Adds a spacer.
         Console.WriteLine();
         Console.WriteLine(menuName + ":");
 
@@ -127,7 +133,6 @@ class Program
                 validInput = CheckOptionInput(userInput, options);
             } catch
             {
-                //! Add a timer then reprint the options again so the user knows what their options are.
                 Console.WriteLine(InvalidInputMessage);
 
                 // Repeats the loop again so the user has another chance to input a valid option. 
@@ -147,6 +152,7 @@ class Program
     public static int MainMenu()
     {
         const string menuName = "Main Menu";
+
         // The list of options for the user to choose from at the start of the program.
         string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book", "Quit"];
 
@@ -158,11 +164,19 @@ class Program
     {
         const string InvalidOptionMessage = "That isn't a valid option.";
 
+        // Which option lines up with switch statement.
+        const int BorrowerLoginOption = 1;
+        const int AddNewBorrowerOption = 2;
+        const int SearchBookOption = 3;
+        const int ReturnBookOption = 4;
+        const int QuitOption = 5;
+
         PrintWelcomeMessage();
 
         // Says the program is in use.
         bool inUse = true;
 
+        // While the user is using the system.
         while (inUse)
         {
             // What the user has picked with the intial options.
@@ -171,24 +185,24 @@ class Program
             // Carring out the options.
             switch (optionChosen)
             {
-                case 1:
+                case BorrowerLoginOption:
                     // Logs into the borrower.
                     CurrentBorrower currentBorrower = CurrentBorrower.ChooseBorrower();
                     currentBorrower.BorrowerOptions();
                     break;
-                case 2:
+                case AddNewBorrowerOption:
                     // Adds a new borrower to the borrowers table.
                     Borrower.AddNewBorrower();
                     break;
-                case 3:
+                case SearchBookOption:
                     // Searches through the Books table to find matching books.
                     Book.SearchBooks();
                     break;
-                case 4:
+                case ReturnBookOption:
                     // Returns (as in returning a loan to the library) a book based on the Id.
                     Book.ReturnBook();
                     break;
-                case 5:
+                case QuitOption:
                     // Exits the loop.
                     inUse = false;
                     break;

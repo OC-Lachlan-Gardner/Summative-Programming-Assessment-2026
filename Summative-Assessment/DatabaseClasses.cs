@@ -26,14 +26,6 @@ public class LibraryContext: DbContext
     }
 }
 
-public class BookSortee : IComparer
-{
-    public int Compare(object x, object y)
-    {
-        return new CaseInsensitiveComparer().Compare(((Book)x).AuthorLName, ((Book)y).AuthorLName);
-    }
-}
-
 /// <summary>
 /// Represents individual items in the Books table.
 /// </summary>
@@ -102,6 +94,7 @@ public class Book
     /// <param name="books">The list of books to print</param>
     public static void ListBooks(List<Book> books)
     {
+        //! sort by last name linq orderby.y
         // Iterates through each book in the list to print it out in a nice way.
         foreach (Book book in books)
         {
