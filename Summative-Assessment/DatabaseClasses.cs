@@ -148,7 +148,7 @@ public class Book
     /// Prints a list of the books the borrower has on their account.
     /// </summary>
     /// <param name="books">The books to print.</param>
-    public static void ListBorrowedBooks(List<Book> books)
+    public static bool ListBorrowedBooks(List<Book> books)
     {
         // Connects to the database.
         using var db = new LibraryContext();
@@ -159,37 +159,54 @@ public class Book
             // Declared out here so that it can be used outside the if else statements.
             string deweyNumber;
 
-            // Retrieves the book from the BorrowedItems table using the Id of the book it recieves.
-            BorrowedItem borrowedBook = db.BorrowedItems.Find(book.Id);
-            
-            // Turns the int that the book property has and turns it into a string.
-            string genre;
-            if (book.NonFiction == trueValue)
+            try
             {
-                // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-                deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
-                genre = NonFictionLabel;
-            } else
-            {
-                // Means the dewey number won't add anything if the book is fiction.
-                deweyNumber = "";
-                genre = FictionLabel;
+                // Retrieves the book from the BorrowedItems table using the Id of the book it recieves.
+                // Will print out the error message if there are no books to print.
+                BorrowedItem borrowedBook = db.BorrowedItems.Find(book.Id)!;
+
+                // Turns the int that the book property has and turns it into a string.
+                string genre;
+                if (book.NonFiction == trueValue)
+                {
+                    // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                    deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
+                    genre = NonFictionLabel;
+                } else
+                {
+                    // Means the dewey number won't add anything if the book is fiction.
+                    deweyNumber = "";
+                    genre = FictionLabel;
+                }
+
+                // Index + 1 because it starts at 0.
+                string bookPrintStructure = 
+                $"""
+
+                    {books.IndexOf(book) + 1}) {book.Title}
+                        Book Id: {book.Id}
+                        Author: {book.AuthorFName} {book.AuthorLName}
+                        Genre: {genre}{deweyNumber}
+                        Issued: {borrowedBook.DateIssued}
+                        Due: {borrowedBook.DateDue}
+                """;
+
+                Console.WriteLine(bookPrintStructure);
+
+                return true;
             }
+            catch
+            {
+                const string errorMessage = "There are no books to display. ";
 
-            // Index + 1 because it starts at 0.
-            string bookPrintStructure = 
-            $"""
+                Console.WriteLine(errorMessage);
 
-                {books.IndexOf(book) + 1}) {book.Title}
-                    Book Id: {book.Id}
-                    Author: {book.AuthorFName} {book.AuthorLName}
-                    Genre: {genre}{deweyNumber}
-                    Issued: {borrowedBook.DateIssued}
-                    Due: {borrowedBook.DateDue}
-            """;
-
-            Console.WriteLine(bookPrintStructure);
+                return false;
+            }
         }
+
+        // Returns true once it has finished printing.
+        return true;
     }
 
     /// <summary>
@@ -598,36 +615,60 @@ class CurrentBorrower
         // Connects to the BorrowedItems table so it can get the books on loan.
         using var db = new LibraryContext();
 
-        // Finds all the books that were borrowed by the person with the currentBorrowers Id.
-        List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
-
-        // If the borrower has books on loan.
-        if (borrowedItems.Count() > MinCount)
+        try
         {
-            // Makes a new list to store the books in once they've been found.
-            List<Book> borrowedBooks = new List<Book> {};
+            // Finds all the books that were borrowed by the person with the currentBorrowers Id.
+            List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
 
-            // Orders the list by the date due.
-            List<BorrowedItem> orderedBooks = borrowedItems.OrderBy(book => book.DateDue).ToList();
-
-            // Goes through the borrowed books to find the full information.
-            foreach (BorrowedItem borrowedItem in orderedBooks)
+            // If the borrower has books on loan.
+            if (borrowedItems.Count() > MinCount)
             {
-                // Adds each book to the list.
-                // It won't be null because the books can't be issued without existing, esoecially since there isn't a way to remove Books entries.
-                borrowedBooks.Add(db.Books.Find(borrowedItem.Id));
+                // Makes a new list to store the books in once they've been found.
+                List<Book> borrowedBooks = new List<Book> {};
+
+                // Orders the list by the date due.
+                List<BorrowedItem> orderedBooks = borrowedItems.OrderBy(book => book.DateDue).ToList();
+
+                // Goes through the borrowed books to find the full information.
+                foreach (BorrowedItem borrowedItem in orderedBooks)
+                {
+                    try
+                    {
+                        // Adds each book to the list.
+                        // It won't be null because the books can't be issued without existing, esoecially since there isn't a way to remove Books entries.
+                        // Will cause an error if there isn't a book to find, which will go to the catch statement.
+                        borrowedBooks.Add(db.Books.Find(borrowedItem.Id)!);
+                    }
+                    catch
+                    {
+                        Console.WriteLine(NoBooksMessage);
+
+                        return false;
+                    }
+                    
+                }
+
+
+                // Prints out the list.
+                if (Book.ListBorrowedBooks(borrowedBooks))
+                {
+                    return true;
+                }
+                else
+                {
+                    throw new Exception(NoBooksMessage);
+                }
+            } else
+            {
+                Console.WriteLine(NoBooksMessage);
+
+                // Says there were no books to list.
+                return false;
             }
-
-            // Prints out the list.
-            Book.ListBorrowedBooks(borrowedBooks);
-
-            // Says there were books to return.
-            return true;
-        } else
+        } catch (Exception e)
         {
-            Console.WriteLine(NoBooksMessage);
+            Console.WriteLine(e);
 
-            // Says there were no books to list.
             return false;
         }
     }
