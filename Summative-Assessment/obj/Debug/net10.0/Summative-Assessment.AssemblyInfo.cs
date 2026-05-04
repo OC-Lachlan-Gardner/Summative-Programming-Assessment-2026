@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Summative-Assessment")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+654bba2d2e83deeedb897785bfbb8ab5f2c662b1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ed5bb8a32c19f29db1deecdc733eddf953948917")]
 [assembly: System.Reflection.AssemblyProductAttribute("Summative-Assessment")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Summative-Assessment")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
