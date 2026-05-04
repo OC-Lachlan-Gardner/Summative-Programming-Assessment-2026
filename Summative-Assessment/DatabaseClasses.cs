@@ -192,8 +192,6 @@ public class Book
                 """;
 
                 Console.WriteLine(bookPrintStructure);
-
-                return true;
             }
             catch
             {
@@ -656,6 +654,7 @@ class CurrentBorrower
                 }
                 else
                 {
+                    // Moves to the catch part and uses the no books message as the error message
                     throw new Exception(NoBooksMessage);
                 }
             } else
@@ -766,7 +765,7 @@ class CurrentBorrower
     /// </summary>
     void BookOperations()
     {
-        const string OperationPrompt = "Enter the number of the book you would like to renew, or 0 to go back to Borrower Menu: ";
+        const string OperationPrompt = "\nEnter the number of the book you would like to renew, or 0 to go back to Borrower Menu: ";
         const string InvalidOptionMessage = "That isn't a valid option.";
 
         /// The number the user has to enter to quit the book operations menu.
