@@ -1,0 +1,9 @@
+-- database: ./Library.db
+
+-- Use the ▷ button in the top right corner to run the entire file.
+
+CREATE TRIGGER `trigger_before_insert_Books` BEFORE INSERT ON `Books` BEGIN
+    SELECT CASE
+        WHEN NEW.NonFiction = 1 AND NEW.DeweyNumber IS NULL THEN RAISE(ABORT, 'Book cannot be non-fiction without a dewey number')
+    END;
+END;
