@@ -148,6 +148,7 @@ public class Book
     /// Prints a list of the books the borrower has on their account.
     /// </summary>
     /// <param name="books">The books to print.</param>
+    /// <returns>true if the book was able to be printed.</returns>
     public static bool ListBorrowedBooks(List<Book> books)
     {
         // Connects to the database.
@@ -211,7 +212,8 @@ public class Book
     /// Prints a single book, unlike the previous method.`
     /// </summary>
     /// <param name="book">The book to print.</param>
-    public static void ListBorrowedBooks(Book book)
+    /// <returns>True if the book was able to be printed.</returns>
+    public static bool ListBorrowedBooks(Book book)
     {
         // Connects to the database.
         using var db = new LibraryContext();
@@ -220,36 +222,49 @@ public class Book
         // Declared out here so that it can be used outside the if else statements.
         string deweyNumber;
 
-        // Retrieves the book from the BorrowedItems table using the Id of the book it recieves.
-        BorrowedItem borrowedBook = db.BorrowedItems.Find(book.Id);
-        
-        // Turns the int that the book property has and turns it into a string.
-        string genre;
-        if (book.NonFiction == trueValue)
+        try
         {
-            // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-            deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
-            genre = NonFictionLabel;
-        } else
+            // Retrieves the book from the BorrowedItems table using the Id of the book it recieves.
+            BorrowedItem borrowedBook = db.BorrowedItems.Find(book.Id)!;
+            
+            // Turns the int that the book property has and turns it into a string.
+            string genre;
+            if (book.NonFiction == trueValue)
+            {
+                // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
+                genre = NonFictionLabel;
+            } else
+            {
+                // Means the dewey number won't add anything if the book is fiction.
+                deweyNumber = "";
+                genre = FictionLabel;
+            }
+
+            // Index + 1 because it starts at 0.
+            string bookPrintStructure = 
+            $"""
+
+                {book.Title}
+                    Book Id: {book.Id}
+                    Author: {book.AuthorFName} {book.AuthorLName}
+                    Genre: {genre}{deweyNumber}
+                    Issued: {borrowedBook.DateIssued}
+                    Due: {borrowedBook.DateDue}
+            """;
+
+            Console.WriteLine(bookPrintStructure);
+
+        } catch
         {
-            // Means the dewey number won't add anything if the book is fiction.
-            deweyNumber = "";
-            genre = FictionLabel;
+            const string errorMessage = "There was no book to display. ";
+
+            Console.WriteLine(errorMessage);
+
+            return false;
         }
 
-        // Index + 1 because it starts at 0.
-        string bookPrintStructure = 
-        $"""
-
-            {book.Title}
-                Book Id: {book.Id}
-                Author: {book.AuthorFName} {book.AuthorLName}
-                Genre: {genre}{deweyNumber}
-                Issued: {borrowedBook.DateIssued}
-                Due: {borrowedBook.DateDue}
-        """;
-
-        Console.WriteLine(bookPrintStructure);
+        return false;
     }
 
     /// <summary>
@@ -389,14 +404,20 @@ public class Book
 /// </summary>
 public class Borrower
 {
+    public Borrower(string fName, string lName)
+    {
+        FName = fName;
+
+        LName = lName;
+    }
     // Makes Id an autonumber because EFCore automatically knows Id is an autonumber.
     public int Id { get; set; }
 
     // First name of the borrower.
-    public string FName { get; set; }
+    public string FName { get; private set; }
 
     // Last name of the borrower.
-    public string LName { get; set; }
+    public string LName { get; private set; }
 
     /// <summary>
     /// Makes a new Borrower and adds it to the Borrowers table.
@@ -408,10 +429,11 @@ public class Borrower
         const string AddBorrowerFNameMessage = "Please enter your first name: ";
         const string AddBorrowerLNameMessage = "Please enter your last name: ";
 
-        // Creates the new instance and then fills it in.
-        Borrower newBorrower = new Borrower();
-        newBorrower.FName = Program.CheckUserString(AddBorrowerFNameMessage);
-        newBorrower.LName = Program.CheckUserString(AddBorrowerLNameMessage);
+        // Creates a new instance of borrower and then fills it in.
+        string fName = Program.CheckUserString(AddBorrowerFNameMessage);
+        string lName = Program.CheckUserString(AddBorrowerLNameMessage);
+
+        Borrower newBorrower = new Borrower(fName, lName);
 
         // Connects to the database so the new borrower can be added.
         using var db = new LibraryContext();
@@ -502,9 +524,9 @@ class CurrentBorrower
         using var db = new LibraryContext();
 
         // Retrieves the borrower with the Id from the table.
-        Borrower currentBorrower = db.Borrowers.Find(BorrowerId);
+        // Forces the find, which will kick it to catch if it doesn't work.
+        Borrower currentBorrower = db.Borrowers.Find(BorrowerId)!;
 
-        // No idea why FName is null but LName isn'r.
         FName = currentBorrower.FName;
 
         LName = currentBorrower.LName;
@@ -540,6 +562,7 @@ class CurrentBorrower
                 userInput = Convert.ToInt32(Console.ReadLine());
 
                 // Creates a new instance of CurrentBorrower to store the current users details in.
+                // If it can't find the borrower then it will go to the catch statement
                 CurrentBorrower currentBorrower = new CurrentBorrower(userInput);
 
                 // Exits the method with the newly created currentBorrower.
