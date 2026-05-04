@@ -94,7 +94,6 @@ public class Book
     /// <param name="books">The list of books to print</param>
     public static void ListBooks(List<Book> books)
     {
-        //! sort by last name linq orderby.y
         // Iterates through each book in the list to print it out in a nice way.
         foreach (Book book in books)
         {
@@ -356,10 +355,12 @@ public class Book
         // Adds all the results together without duplicates.
         List<Book> searchResults = booksTitles.Union(booksAuthorsLName).Union(booksAuthorsFName).ToList();
 
+        List<Book> orderedSearchResults = searchResults.OrderBy(book => book.AuthorLName).ToList<Book>();
+
         // Only prints out the books if there are books to print.
-        if (searchResults.Count > MinCount)
+        if (orderedSearchResults.Count > MinCount)
         {
-            Book.ListBooks(searchResults);
+            Book.ListBooks(orderedSearchResults);
         }
         else
         {
@@ -575,7 +576,7 @@ class CurrentBorrower
             db.SaveChanges();
 
             // The forced non-null will trigger an error that'll get caught by the catch.
-            List<Book> book = new List<Book> {db.Books.Find(borrowedBook.Id)!};
+            Book book = db.Books.Find(borrowedBook.Id)!;
 
             // Prints the book so the user can see what they issued.
             Book.ListBorrowedBooks(book);
@@ -606,8 +607,11 @@ class CurrentBorrower
             // Makes a new list to store the books in once they've been found.
             List<Book> borrowedBooks = new List<Book> {};
 
+            // Orders the list by the date due.
+            List<BorrowedItem> orderedBooks = borrowedItems.OrderBy(book => book.DateDue).ToList();
+
             // Goes through the borrowed books to find the full information.
-            foreach (BorrowedItem borrowedItem in borrowedItems)
+            foreach (BorrowedItem borrowedItem in orderedBooks)
             {
                 // Adds each book to the list.
                 // It won't be null because the books can't be issued without existing, esoecially since there isn't a way to remove Books entries.
