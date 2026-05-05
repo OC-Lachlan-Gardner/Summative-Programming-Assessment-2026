@@ -88,6 +88,37 @@ public class Book
         Available = AvailableDefault;
     }
 
+    public static void AddNewBook()
+    {
+        bool validInput = false;
+
+        const string TitlePrompt = "Enter the book title: ";
+        const string AuthorFNamePrompt = "Enter the author's first name: ";
+        const string AuthorLNamePrompt = "Enter the authors: ";
+        const string NonFictionPrompt = "Is the book non-fiction. Y/N: ";
+        const string DeweyNumberPrompt = "What is the Dewey Decimal Number: ";
+
+        // The valid input to the Non-Fiction prompt.
+        List<char> validNonFictionAnswers = new List<char> {'y', 'n'};
+
+        while (!validInput)
+        {
+            try
+            {
+                string title = Program.CheckUserString(TitlePrompt);
+                string lName = Program.CheckUserString(AuthorFNamePrompt);
+                string fName = Program.CheckUserString(AuthorLNamePrompt);
+                string nonFiction = Program.CheckUserChar(NonFictionPrompt);
+
+
+            }
+            catch
+            {
+                
+            }
+        }
+    }
+
     /// <summary>
     /// Prints the books out in a nice to read layout.
     /// </summary>
@@ -432,7 +463,6 @@ public class Borrower
         // Creates a new instance of borrower and then fills it in.
         string fName = Program.CheckUserString(AddBorrowerFNameMessage);
         string lName = Program.CheckUserString(AddBorrowerLNameMessage);
-
         Borrower newBorrower = new Borrower(fName, lName);
 
         // Connects to the database so the new borrower can be added.

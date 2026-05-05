@@ -77,6 +77,38 @@ class Program
     }
 
     /// <summary>
+    /// Makes sure the input isn't null.
+    /// </summary>
+    /// <param name="promptMessage">What to print to the user as a prompt.</param>
+    /// <returns>The not null input.</returns>
+    public static char CheckUserChar(string promptMessage)
+    {
+        // Puts the variable in the right scope so it can be accessed outside the loop.
+        string? userInput;
+
+        char charInput;
+
+        do
+        {
+            Console.Write(promptMessage);
+
+            // Gets the users input.
+            // If it's null, then it'll get caught by the if statement.
+            userInput = Console.ReadLine();
+
+            // Prints the invalid message if the user didn't enter anything.            if (userInput == "")
+            if (userInput == null)
+            {
+                Console.WriteLine(InvalidInputMessage);
+            }
+        // Only loops if the user hasn't input anything or it can't be converted to char.
+        } while(char.TryParse(userInput, out charInput) && userInput != null);
+
+        // By this point userInput has been checked to make sure it isn't null.
+        return charInput;
+    }
+
+    /// <summary>
     /// Prints each of the options and its option number.
     /// </summary>
     /// <returns>The option number the user has input.</returns>
