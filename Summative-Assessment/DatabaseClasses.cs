@@ -562,7 +562,7 @@ class CurrentBorrower
                 userInput = Convert.ToInt32(Console.ReadLine());
 
                 // Creates a new instance of CurrentBorrower to store the current users details in.
-                // If it can't find the borrower then it will go to the catch statement
+                // If it can't find the borrower then it will go to the catch statement.
                 CurrentBorrower currentBorrower = new CurrentBorrower(userInput);
 
                 // Exits the method with the newly created currentBorrower.
