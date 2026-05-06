@@ -88,34 +88,145 @@ public class Book
         Available = AvailableDefault;
     }
 
+    /// <summary>
+    /// Makes a new book instance and adds it to the books table.
+    /// </summary>
     public static void AddNewBook()
     {
-        bool validInput = false;
+        // The max amount of characters the title can be.
+        // It's 30000 because the longest book title is 27978 characters long.
+        const int MaxTitleLength = 30000;
+        // The longest name has 666 characters in it.
+        const int MaxNameLength = 666;
 
         const string TitlePrompt = "Enter the book title: ";
         const string AuthorFNamePrompt = "Enter the author's first name: ";
-        const string AuthorLNamePrompt = "Enter the authors: ";
+        const string AuthorLNamePrompt = "Enter the author's last name: ";
         const string NonFictionPrompt = "Is the book non-fiction. Y/N: ";
+        // If the NonFiction answer isn't y or n.
+        const string InvalidNonFictionPrompt = "That isn't a valid answer.\n\nPlease enter Y or N: ";
         const string DeweyNumberPrompt = "What is the Dewey Decimal Number: ";
+        const int DeweyMin = 0;
+        const int DeweyMax = 1000;
 
-        // The valid input to the Non-Fiction prompt.
+        string InvalidDeweyNumber = $"\nThat isn't a valid Dewey Decimal Number, it must be greater than or equal to {DeweyMin} and less than {DeweyMax}: ";
+
+        // The valid inputs to the Non-Fiction prompt.
         List<char> validNonFictionAnswers = new List<char> {'y', 'n'};
 
-        while (!validInput)
+        // Which of the valid inputs represents Non-Fiction.
+        const int NonFictionIndex = 0;
+
+        // In case the user manages to crash the inputting stage.
+        const string InvalidInputErrorMessage = "That isn't valid information, please try again from the main menu.";
+
+        try
         {
-            try
-            {
-                string title = Program.CheckUserString(TitlePrompt);
-                string lName = Program.CheckUserString(AuthorFNamePrompt);
-                string fName = Program.CheckUserString(AuthorLNamePrompt);
-                string nonFiction = Program.CheckUserChar(NonFictionPrompt);
+            // Declares them here so they can be used outside of any input loops.
+            string title;
+            string lName;
+            string fName;
+            char nonFiction;
+            // Starts as null because it's unknown if the book is non-fiction yet.
+            float? deweyNumber = null;
 
-
-            }
-            catch
+            // Gets the basic book information from the user.
+            do
             {
-                
+                const string TitleTooLongMessage = "\nTitle is too long";
+
+                // Makes sure the title isn't null.
+                title = Program.CheckUserString(TitlePrompt);
+
+                // Checks whether the input title is too long and prints the error message so they can fix it if it is.
+                if (title.Count() > MaxTitleLength)
+                {
+                    Console.WriteLine(TitleTooLongMessage);
+                }
+
+            // Repeats if the title is too long.
+            } while (title.Count() > MaxTitleLength);
+
+            // Gets the basic book information from the user.
+            do
+            {
+                const string NameTooLongMessage = "\nName is too long";
+
+                // Makes sure the title isn't null.
+                fName = Program.CheckUserString(AuthorFNamePrompt);
+
+                // Checks whether the input title is too long and prints the error message so they can fix it if it is.
+                if (fName.Count() > MaxNameLength)
+                {
+                    Console.WriteLine(NameTooLongMessage);
+                }
+
+            // Repeats if the name is too long.
+            } while (fName.Count() > MaxNameLength);
+
+            // Gets the basic book information from the user.
+            do
+            {
+                const string NameTooLongMessage = "\nName is too long";
+
+                // Makes sure the name isn't null.
+                lName = Program.CheckUserString(AuthorLNamePrompt);
+
+                // Checks whether the input name is too long and prints the error message so they can fix it if it is.
+                if (lName.Count() > MaxNameLength)
+                {
+                    Console.WriteLine(NameTooLongMessage);
+                }
+
+            // Repeats if the name is too long.
+            } while (lName.Count() > MaxNameLength);
+
+            // Asks the user whether the book is non-fiction or not.
+            nonFiction = Program.CheckUserChar(NonFictionPrompt);
+
+            // Continues looping if the users input isn't in the valid answer
+            // Makes the user input lower case to make it easier to put in the right answer.
+            while (!validNonFictionAnswers.Contains(char.ToLower(nonFiction)))
+            {
+                // Asks again if it wasn't calid.
+                // This ensures there is a valid answer from the user.
+                nonFiction = Program.CheckUserChar(InvalidNonFictionPrompt);
             }
+            
+            // If the user answers yes to it being a Non-Fiction book.
+            if (nonFiction == validNonFictionAnswers[NonFictionIndex])
+            {
+                Console.WriteLine(DeweyNumberPrompt);
+
+                do
+                {
+                    float potentialDeweyNumber;
+                    while (!float.TryParse(Console.ReadLine(), out potentialDeweyNumber))
+                    {
+                        Console.WriteLine(InvalidDeweyNumber);
+                    }
+
+                    // Assigns the parsed number to the dewey number.
+                    deweyNumber = potentialDeweyNumber;
+
+                // Only continues when the dewey number is neeeded and it's null, or if the dewey number is between 0 and 1000, the dewey decimal range.
+                } while (deweyNumber is null || (deweyNumber <= DeweyMin && deweyNumber > DeweyMax));
+            }
+
+            // Creates an instance using these properties.
+            Book bookToAdd = new Book(title, fName, lName, nonFiction, deweyNumber);
+
+            // Connects to the database so the book can be added to the Books table.
+            using var db = new LibraryContext();
+
+            db.Books.Add(bookToAdd);
+
+            // Saves the Books table.
+            db.SaveChanges();
+        }
+        catch
+        {
+            Console.WriteLine(InvalidInputErrorMessage);
         }
     }
 

@@ -83,6 +83,9 @@ class Program
     /// <returns>The not null input.</returns>
     public static char CheckUserChar(string promptMessage)
     {
+        //! Doesn't work rn.
+        const char CharNullValue = '\0';
+        
         // Puts the variable in the right scope so it can be accessed outside the loop.
         string? userInput;
 
@@ -102,7 +105,7 @@ class Program
                 Console.WriteLine(InvalidInputMessage);
             }
         // Only loops if the user hasn't input anything or it can't be converted to char.
-        } while(char.TryParse(userInput, out charInput) && userInput != null);
+        } while(char.TryParse(userInput, out charInput) || charInput == CharNullValue);
 
         // By this point userInput has been checked to make sure it isn't null.
         return charInput;
@@ -186,7 +189,7 @@ class Program
         const string menuName = "Main Menu";
 
         // The list of options for the user to choose from at the start of the program.
-        string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book", "Quit"];
+        string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book", "Add New Book", "Quit"];
 
         // Creates a menu with those options.
         return Menu(firstMenuOptions, menuName);
@@ -201,7 +204,8 @@ class Program
         const int AddNewBorrowerOption = 2;
         const int SearchBookOption = 3;
         const int ReturnBookOption = 4;
-        const int QuitOption = 5;
+        const int AddNewBookOption = 5;
+        const int QuitOption = 6;
 
         PrintWelcomeMessage();
 
@@ -234,6 +238,9 @@ class Program
                     // Returns (as in returning a loan to the library) a book based on the Id.
                     Book.ReturnBook();
                     break;
+                case AddNewBookOption:
+                    Book.AddNewBook();
+                    break;
                 case QuitOption:
                     // Exits the loop.
                     inUse = false;
@@ -244,6 +251,5 @@ class Program
                     break;
             }
         }
-        
     }
 }
