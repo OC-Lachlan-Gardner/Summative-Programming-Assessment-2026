@@ -104,15 +104,19 @@ public class Book
         const string AuthorLNamePrompt = "Enter the author's last name: ";
         const string NonFictionPrompt = "Is the book non-fiction. Y/N: ";
         // If the NonFiction answer isn't y or n.
-        const string InvalidNonFictionPrompt = "That isn't a valid answer.\n\nPlease enter Y or N: ";
+        const string InvalidCharInputPrompt = "That isn't a valid answer.\n\nPlease enter Y or N.";
         const string DeweyNumberPrompt = "What is the Dewey Decimal Number: ";
         const int DeweyMin = 0;
         const int DeweyMax = 1000;
 
+        // The values that represent the genres in the database.
+        const int NonFiction = 1;
+        const int Fiction = 0;
+
         string InvalidDeweyNumber = $"\nThat isn't a valid Dewey Decimal Number, it must be greater than or equal to {DeweyMin} and less than {DeweyMax}: ";
 
         // The valid inputs to the Non-Fiction prompt.
-        List<char> validNonFictionAnswers = new List<char> {'y', 'n'};
+        List<char> validCharInputAnswers = new List<char> {'y', 'n'};
 
         // Which of the valid inputs represents Non-Fiction.
         const int NonFictionIndex = 0;
@@ -126,7 +130,11 @@ public class Book
             string title;
             string lName;
             string fName;
-            char nonFiction;
+            // The character that the user inputs to select whether it's non-fiction or not.
+            char nonFictionInput;
+            // The actual bit that gets passed to the database has to be an int, which represents a bool.
+            // Defaults to Fiction.
+            int genre = Fiction;
             // Starts as null because it's unknown if the book is non-fiction yet.
             float? deweyNumber = null;
 
@@ -182,28 +190,31 @@ public class Book
             } while (lName.Count() > MaxNameLength);
 
             // Asks the user whether the book is non-fiction or not.
-            nonFiction = Program.CheckUserChar(NonFictionPrompt);
+            nonFictionInput = Program.CheckUserChar(NonFictionPrompt, InvalidCharInputPrompt);
 
             // Continues looping if the users input isn't in the valid answer
             // Makes the user input lower case to make it easier to put in the right answer.
-            while (!validNonFictionAnswers.Contains(char.ToLower(nonFiction)))
+            while (!validCharInputAnswers.Contains(char.ToLower(nonFictionInput)))
             {
                 // Asks again if it wasn't calid.
                 // This ensures there is a valid answer from the user.
-                nonFiction = Program.CheckUserChar(InvalidNonFictionPrompt);
+                nonFictionInput = Program.CheckUserChar(InvalidCharInputPrompt, InvalidCharInputPrompt);
             }
             
             // If the user answers yes to it being a Non-Fiction book.
-            if (char.ToLower(nonFiction) == validNonFictionAnswers[NonFictionIndex])
-            {
-                Console.Write(DeweyNumberPrompt);
-                // What the user enters.
-                // It's nullable because it will be checked later.
-                string? deweyNumberInput = Console.ReadLine();
+            if (char.ToLower(nonFictionInput) == validCharInputAnswers[NonFictionIndex])
+            {                
+                float potentialDeweyNumber;
+
+                string? deweyNumberInput;
 
                 do
                 {
-                    float potentialDeweyNumber;
+                    Console.Write(DeweyNumberPrompt);
+                    // What the user enters.
+                    // It's nullable because it will be checked later.
+                    deweyNumberInput = Console.ReadLine();
+
                     while (!float.TryParse(deweyNumberInput, out potentialDeweyNumber))
                     {
                         Console.Write(InvalidDeweyNumber);
@@ -213,20 +224,80 @@ public class Book
                     // Assigns the parsed number to the dewey number.
                     deweyNumber = potentialDeweyNumber;
 
+                    genre = NonFiction;
+
+                    if (deweyNumber < DeweyMin || deweyNumber >= DeweyMax)
+                    {
+                        Console.WriteLine(InvalidDeweyNumber);
+                    }
+
                 // Only continues when the dewey number is neeeded and it's null, or if the dewey number is between 0 and 1000, the dewey decimal range.
-                } while (deweyNumber is null || (deweyNumber <= DeweyMin && deweyNumber > DeweyMax));
+                } while (deweyNumber < DeweyMin || deweyNumber >= DeweyMax);
             }
 
             // Creates an instance using these properties.
-            Book bookToAdd = new Book(title, fName, lName, nonFiction, deweyNumber);
+            Book bookToAdd = new Book(title, fName, lName, genre, deweyNumber);
 
-            // Connects to the database so the book can be added to the Books table.
-            using var db = new LibraryContext();
+            // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
+            // Declared out here so that it can be used outside the if else statements.
+            string deweyNumberLabel;
 
-            db.Books.Add(bookToAdd);
+            string genreLabel;
 
-            // Saves the Books table.
-            db.SaveChanges();
+            if (genre == trueValue)
+            {
+                // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                deweyNumberLabel = $"\n    Dewey Decimal Number: {deweyNumber}";
+                genreLabel = NonFictionLabel;
+            } else
+            {
+                // Means the dewey number won't add anything if the book is fiction.
+                deweyNumberLabel = "";
+                genreLabel = FictionLabel;
+            }
+            
+            string bookSummary = 
+            $"""
+            {title}
+                Author: {fName} {lName}
+                Genre: {genreLabel}{deweyNumberLabel}
+            """;
+
+            Console.WriteLine(bookSummary);
+
+            const string ConfirmPrompt = "Enter Y to add book, N to cancel: ";
+
+            // Asks the user whether the book is non-fiction or not.
+            char confirm = Program.CheckUserChar(ConfirmPrompt, InvalidCharInputPrompt);
+
+            // Continues looping if the users input isn't in the valid answer
+            // Makes the user input lower case to make it easier to put in the right answer.
+            while (!validCharInputAnswers.Contains(char.ToLower(confirm)))
+            {
+                // Asks again if it wasn't calid.
+                // This ensures there is a valid answer from the user.
+                confirm = Program.CheckUserChar(InvalidCharInputPrompt, InvalidCharInputPrompt);
+            }
+
+            if (confirm == validCharInputAnswers[NonFictionIndex])
+            {
+                // Connects to the database so the book can be added to the Books table.
+                using var db = new LibraryContext();
+
+                db.Books.Add(bookToAdd);
+
+                // Saves the Books table.
+                db.SaveChanges();
+                
+                // The message to let the user know they've succeddfully added the book.
+                const string SuccessMessage = "Successfully added the book.";
+                Console.WriteLine(SuccessMessage);
+            } else
+            {
+                // The message to let the user know they've cancelled the book addition.
+                const string CancelMessage = "Cancelled book addition.";
+                Console.WriteLine(CancelMessage);
+            }            
         }
         catch
         {
