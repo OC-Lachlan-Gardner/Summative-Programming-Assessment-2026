@@ -194,16 +194,20 @@ public class Book
             }
             
             // If the user answers yes to it being a Non-Fiction book.
-            if (nonFiction == validNonFictionAnswers[NonFictionIndex])
+            if (char.ToLower(nonFiction) == validNonFictionAnswers[NonFictionIndex])
             {
-                Console.WriteLine(DeweyNumberPrompt);
+                Console.Write(DeweyNumberPrompt);
+                // What the user enters.
+                // It's nullable because it will be checked later.
+                string? deweyNumberInput = Console.ReadLine();
 
                 do
                 {
                     float potentialDeweyNumber;
-                    while (!float.TryParse(Console.ReadLine(), out potentialDeweyNumber))
+                    while (!float.TryParse(deweyNumberInput, out potentialDeweyNumber))
                     {
-                        Console.WriteLine(InvalidDeweyNumber);
+                        Console.Write(InvalidDeweyNumber);
+                        deweyNumberInput = Console.ReadLine();
                     }
 
                     // Assigns the parsed number to the dewey number.

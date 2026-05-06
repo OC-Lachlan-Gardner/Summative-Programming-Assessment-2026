@@ -83,7 +83,6 @@ class Program
     /// <returns>The not null input.</returns>
     public static char CheckUserChar(string promptMessage)
     {
-        //! Doesn't work rn.
         const char CharNullValue = '\0';
         
         // Puts the variable in the right scope so it can be accessed outside the loop.
@@ -105,7 +104,7 @@ class Program
                 Console.WriteLine(InvalidInputMessage);
             }
         // Only loops if the user hasn't input anything or it can't be converted to char.
-        } while(char.TryParse(userInput, out charInput) || charInput == CharNullValue);
+        } while(!char.TryParse(userInput, out charInput) || charInput == CharNullValue);
 
         // By this point userInput has been checked to make sure it isn't null.
         return charInput;
