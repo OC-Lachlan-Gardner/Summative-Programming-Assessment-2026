@@ -100,7 +100,7 @@ class Program
             if (!char.TryParse(userInput, out charInput) || !validInputs.Contains(char.ToLower(charInput)))
             {
                 Console.WriteLine(invalidInputMessage);
-            }//!Fix this and add to lowers and test.
+            }
         // Only loops if the user hasn't input anything or it can't be converted to char.
         } while(!char.TryParse(userInput, out charInput) || !validInputs.Contains(char.ToLower(charInput)));
 
@@ -156,6 +156,7 @@ class Program
             try
             {
                 Console.Write(OptionInputMessage);
+                
                 // Gets the users input and converts it to int.
                 // Throws an error if the users input is a number.
                 // This causes it to ask again.

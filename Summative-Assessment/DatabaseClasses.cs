@@ -274,8 +274,6 @@ public class Book
 
             """;
 
-            //! fix the dewey number printing twice.
-
             Console.WriteLine(bookSummary);
 
             const string ConfirmPrompt = "Enter Y to add book, N to cancel: ";
@@ -283,7 +281,7 @@ public class Book
             // Asks the user whether the book is non-fiction or not.
             char confirm = Program.CheckUserChar(ConfirmPrompt, InvalidCharInputPrompt, validCharInputAnswers);
 
-            if (confirm == validCharInputAnswers[NonFictionIndex])
+            if (char.ToLower(confirm) == validCharInputAnswers[NonFictionIndex])
             {
                 // Connects to the database so the book can be added to the Books table.
                 using var db = new LibraryContext();
