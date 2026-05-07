@@ -97,14 +97,14 @@ public class Book
         // It's 30000 because the longest book title is 27978 characters long.
         const int MaxTitleLength = 30000;
         // The longest name has 666 characters in it.
-        const int MaxNameLength = 666;
+        const int MaxNameLength = 9;
 
         const string TitlePrompt = "Enter the book title: ";
         const string AuthorFNamePrompt = "Enter the author's first name: ";
         const string AuthorLNamePrompt = "Enter the author's last name: ";
         const string NonFictionPrompt = "Is the book non-fiction. Y/N: ";
         // If the NonFiction answer isn't y or n.
-        const string InvalidCharInputPrompt = "That isn't a valid answer.\n\nPlease enter Y or N.";
+        const string InvalidCharInputPrompt = "That isn't a valid answer.\n\nPlease enter Y or N: ";
         const string DeweyNumberPrompt = "What is the Dewey Decimal Number: ";
         const int DeweyMin = 0;
         const int DeweyMax = 1000;
@@ -190,7 +190,7 @@ public class Book
             } while (lName.Count() > MaxNameLength);
 
             // Asks the user whether the book is non-fiction or not.
-            nonFictionInput = Program.CheckUserChar(NonFictionPrompt, InvalidCharInputPrompt);
+            nonFictionInput = Program.CheckUserChar(NonFictionPrompt, InvalidCharInputPrompt, validCharInputAnswers);
 
             // Continues looping if the users input isn't in the valid answer
             // Makes the user input lower case to make it easier to put in the right answer.
@@ -198,7 +198,7 @@ public class Book
             {
                 // Asks again if it wasn't calid.
                 // This ensures there is a valid answer from the user.
-                nonFictionInput = Program.CheckUserChar(InvalidCharInputPrompt, InvalidCharInputPrompt);
+                nonFictionInput = Program.CheckUserChar(InvalidCharInputPrompt, InvalidCharInputPrompt, validCharInputAnswers);
             }
             
             // If the user answers yes to it being a Non-Fiction book.
@@ -268,16 +268,7 @@ public class Book
             const string ConfirmPrompt = "Enter Y to add book, N to cancel: ";
 
             // Asks the user whether the book is non-fiction or not.
-            char confirm = Program.CheckUserChar(ConfirmPrompt, InvalidCharInputPrompt);
-
-            // Continues looping if the users input isn't in the valid answer
-            // Makes the user input lower case to make it easier to put in the right answer.
-            while (!validCharInputAnswers.Contains(char.ToLower(confirm)))
-            {
-                // Asks again if it wasn't calid.
-                // This ensures there is a valid answer from the user.
-                confirm = Program.CheckUserChar(InvalidCharInputPrompt, InvalidCharInputPrompt);
-            }
+            char confirm = Program.CheckUserChar(ConfirmPrompt, InvalidCharInputPrompt, validCharInputAnswers);
 
             if (confirm == validCharInputAnswers[NonFictionIndex])
             {
