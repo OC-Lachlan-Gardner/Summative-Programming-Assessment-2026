@@ -206,33 +206,42 @@ public class Book
             {                
                 float potentialDeweyNumber;
 
-                string? deweyNumberInput;
+                string? deweyNumberInput = null;
+
+                bool invalidInputAlready = false;
+
+                genre = NonFiction;
 
                 do
                 {
-                    Console.Write(DeweyNumberPrompt);
+                    // Checks whether the user has already input an invalid dewey decimal number.
+                    if (invalidInputAlready)
+                    {
+                        Console.Write(InvalidDeweyNumber);
+                    }
+                    else
+                    {
+                        Console.Write(DeweyNumberPrompt);
+                    }
+
                     // What the user enters.
                     // It's nullable because it will be checked later.
                     deweyNumberInput = Console.ReadLine();
 
-                    while (!float.TryParse(deweyNumberInput, out potentialDeweyNumber))
+                    // Checks whether the input is a valid input, then if it's in the right range.
+                    if (!float.TryParse(deweyNumberInput, out potentialDeweyNumber))
                     {
-                        Console.Write(InvalidDeweyNumber);
-                        deweyNumberInput = Console.ReadLine();
+                        invalidInputAlready = true;
+                    } else if (potentialDeweyNumber <= DeweyMin || potentialDeweyNumber >= DeweyMax)
+                    {
+                        invalidInputAlready = true;
                     }
 
                     // Assigns the parsed number to the dewey number.
                     deweyNumber = potentialDeweyNumber;
 
-                    genre = NonFiction;
-
-                    if (deweyNumber < DeweyMin || deweyNumber >= DeweyMax)
-                    {
-                        Console.WriteLine(InvalidDeweyNumber);
-                    }
-
                 // Only continues when the dewey number is neeeded and it's null, or if the dewey number is between 0 and 1000, the dewey decimal range.
-                } while (deweyNumber < DeweyMin || deweyNumber >= DeweyMax);
+                } while (deweyNumber <= DeweyMin || deweyNumber >= DeweyMax);
             }
 
             // Creates an instance using these properties.
