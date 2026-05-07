@@ -97,15 +97,15 @@ public class Book
         // It's 30000 because the longest book title is 27978 characters long.
         const int MaxTitleLength = 30000;
         // The longest name has 666 characters in it.
-        const int MaxNameLength = 9;
+        const int MaxNameLength = 666;
 
         const string TitlePrompt = "Enter the book title: ";
-        const string AuthorFNamePrompt = "Enter the author's first name: ";
+        const string AuthorFNamePrompt = "\nEnter the author's first name: ";
         const string AuthorLNamePrompt = "Enter the author's last name: ";
-        const string NonFictionPrompt = "Is the book non-fiction. Y/N: ";
+        const string NonFictionPrompt = "\nIs the book non-fiction. Y/N: ";
         // If the NonFiction answer isn't y or n.
-        const string InvalidCharInputPrompt = "That isn't a valid answer.\n\nPlease enter Y or N: ";
-        const string DeweyNumberPrompt = "What is the Dewey Decimal Number: ";
+        const string InvalidCharInputPrompt = "That isn't a valid answer.\nPlease enter Y or N.";
+        const string DeweyNumberPrompt = "\nWhat is the Dewey Decimal Number: ";
         const int DeweyMin = 0;
         const int DeweyMax = 1000;
 
@@ -258,10 +258,14 @@ public class Book
             
             string bookSummary = 
             $"""
-            {title}
+
+            Title: {title}
                 Author: {fName} {lName}
                 Genre: {genreLabel}{deweyNumberLabel}
+
             """;
+
+            //! fix the dewey number printing twice.
 
             Console.WriteLine(bookSummary);
 
@@ -283,6 +287,7 @@ public class Book
                 // The message to let the user know they've succeddfully added the book.
                 const string SuccessMessage = "Successfully added the book.";
                 Console.WriteLine(SuccessMessage);
+            // By the time the program gets here its already been made sure it's in the valid inputs list.
             } else
             {
                 // The message to let the user know they've cancelled the book addition.

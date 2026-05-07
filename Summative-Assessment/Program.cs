@@ -97,7 +97,7 @@ class Program
             userInput = Console.ReadLine();
 
             // Prints the invalid message if the user didn't enter anything.            if (userInput == "")
-            if (!char.TryParse(userInput, out charInput) || !validInputs.Contains(charInput))
+            if (!char.TryParse(userInput, out charInput) || !validInputs.Contains(char.ToLower(charInput)))
             {
                 Console.WriteLine(invalidInputMessage);
             }//!Fix this and add to lowers and test.
