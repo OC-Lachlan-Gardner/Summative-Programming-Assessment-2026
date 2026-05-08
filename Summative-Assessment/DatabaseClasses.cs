@@ -43,7 +43,7 @@ public class Book
 
     public string AuthorLName { get; set; }
 
-    //* In sqlite, booleans aren't a thing, so instead it's an int: 1 for true, 0 for false.
+    // In sqlite, booleans aren't a thing, so instead it's an int: 1 for true, 0 for false.
     public int NonFiction { get; set; } 
 
     // Can be left null if it's a fiction book.
@@ -55,6 +55,8 @@ public class Book
     // What to call books that are non=fiction or fiction.
     const string NonFictionLabel = "Non-Fiction";
     const string FictionLabel = "Fiction";
+
+    // What to label the books when they're available or not.
     const string AvailableLabel = "Available";
     const string UnavailableLabel = "Not Available";
 
@@ -100,10 +102,12 @@ public class Book
         // The longest name has 666 characters in it.
         const int MaxNameLength = 666;
 
+        // The prompts to use when asking for the user's input.
         const string TitlePrompt = "Enter the book title: ";
         const string AuthorFNamePrompt = "\nEnter the author's first name: ";
         const string AuthorLNamePrompt = "Enter the author's last name: ";
         const string NonFictionPrompt = "\nIs the book non-fiction. Y/N: ";
+    
         // If the NonFiction answer isn't y or n.
         const string InvalidCharInputPrompt = "That isn't a valid answer.\nPlease enter Y or N.";
         const string DeweyNumberPrompt = "\nWhat is the Dewey Decimal Number: ";
@@ -114,6 +118,7 @@ public class Book
         const int NonFiction = 1;
         const int Fiction = 0;
 
+        // What to print when the user inputs an invalid string.
         string InvalidDeweyNumber = $"\nThat isn't a valid Dewey Decimal Number, it must be greater than or equal to {DeweyMin} and less than {DeweyMax}: ";
 
         // The valid inputs to the Non-Fiction prompt.
@@ -159,6 +164,7 @@ public class Book
             // Gets the basic book information from the user.
             do
             {
+                // The message to print if the name is too long.
                 const string NameTooLongMessage = "\nName is too long";
 
                 // Makes sure the title isn't null.
@@ -176,6 +182,7 @@ public class Book
             // Gets the basic book information from the user.
             do
             {
+                // The message to print if the name is too long.
                 const string NameTooLongMessage = "\nName is too long";
 
                 // Makes sure the name isn't null.
@@ -232,16 +239,18 @@ public class Book
                     // Checks whether the input is a valid input, then if it's in the right range.
                     if (!float.TryParse(deweyNumberInput, out potentialDeweyNumber))
                     {
+                        // Says that the user has put in an invalid input, this means the invalid message will be printed instead of the useual one.
                         invalidInputAlready = true;
                     } else if (potentialDeweyNumber <= DeweyMin || potentialDeweyNumber >= DeweyMax)
                     {
+                        // Says that the user has put in an invalid input, this means the invalid message will be printed instead of the useual one.
                         invalidInputAlready = true;
                     }
 
                     // Assigns the parsed number to the dewey number.
                     deweyNumber = potentialDeweyNumber;
 
-                // Only continues when the dewey number is neeeded and it's null, or if the dewey number is between 0 and 1000, the dewey decimal range.
+                // Only continues when the dewey number is needed and it's null, or if the dewey number is between 0 and 1000, the dewey decimal range.
                 } while (deweyNumber <= DeweyMin || deweyNumber >= DeweyMax);
             }
 
@@ -252,6 +261,7 @@ public class Book
             // Declared out here so that it can be used outside the if else statements.
             string deweyNumberLabel;
 
+            // What to print for the genre part of the structured message.
             string genreLabel;
 
             if (genre == trueValue)
@@ -261,14 +271,19 @@ public class Book
 
                 // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
                 deweyNumberLabel = $"\n    Dewey Decimal Number: {deweyNumberFormatted}";
+
+                // Says that the message to print out should be non-fiction.
                 genreLabel = NonFictionLabel;  
             } else
             {
                 // Means the dewey number won't add anything if the book is fiction.
                 deweyNumberLabel = "";
+
+                // Says that the message to print out should be fiction.
                 genreLabel = FictionLabel;
             }
             
+            // The books information in an easily readable way.
             string bookSummary = 
             $"""
 
@@ -280,6 +295,7 @@ public class Book
 
             Console.WriteLine(bookSummary);
 
+            // What is actually asked of the user.
             const string ConfirmPrompt = "Enter Y to add book, N to cancel: ";
 
             // Asks the user whether the book is non-fiction or not.
@@ -290,6 +306,7 @@ public class Book
                 // Connects to the database so the book can be added to the Books table.
                 using var db = new LibraryContext();
 
+                // Adds the book to the table.
                 db.Books.Add(bookToAdd);
 
                 // Saves the Books table.
@@ -298,7 +315,6 @@ public class Book
                 // The message to let the user know they've succeddfully added the book.
                 const string SuccessMessage = "Successfully added the book.";
                 Console.WriteLine(SuccessMessage);
-            // By the time the program gets here its already been made sure it's in the valid inputs list.
             } else
             {
                 // The message to let the user know they've cancelled the book addition.
@@ -381,12 +397,14 @@ public class Book
         // Connects to the database.
         using var db = new LibraryContext();
 
+        // Iterates through all the books in the list to print them out.
         foreach (Book book in books)
         {
             // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
             // Declared out here so that it can be used outside the if else statements.
             string deweyNumber;
 
+            // In case the book can't be found.
             try
             {
                 // Retrieves the book from the BorrowedItems table using the Id of the book it recieves.
@@ -395,6 +413,7 @@ public class Book
 
                 // Turns the int that the book property has and turns it into a string.
                 string genre;
+                // Checks whether the book is nonfiction or not.
                 if (book.NonFiction == trueValue)
                 {
                     // Turns the the dewey number into the correct format with at least 3 digits on each side.
@@ -430,6 +449,7 @@ public class Book
 
                 Console.WriteLine(errorMessage);
 
+                // Says there are no books that could be displayed.
                 return false;
             }
         }
@@ -474,7 +494,7 @@ public class Book
                 genre = FictionLabel;
             }
 
-            // Index + 1 because it starts at 0.
+            // Prints the book out in a nice way.
             string bookPrintStructure = 
             $"""
 
@@ -535,6 +555,7 @@ public class Book
 
                 // The forced non-null will trigger an error that'll get caught by the catch.
                 BorrowedItem borrowedBookToReturn = db.BorrowedItems.Find(userInput)!;
+                // Gets the full book information using the connected table.
                 Book bookToReturn = db.Books.Find(borrowedBookToReturn.Id)!;
 
                 // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
@@ -640,6 +661,11 @@ public class Book
 /// </summary>
 public class Borrower
 {
+    /// <summary>
+    ///  The constructor to create a new borrower instance.
+    /// </summary>
+    /// <param name="fName">The user's first name.</param>
+    /// <param name="lName">The user's last name.</param>
     public Borrower(string fName, string lName)
     {
         FName = fName;
@@ -753,6 +779,7 @@ public class BorrowedItem
     /// </summary>
     public BorrowedItem()
     {
+        // Gets the current date.
         DateIssued = DateOnly.FromDateTime(DateTime.Now);
 
         // Adds the loan length to the current date.
@@ -774,7 +801,10 @@ class CurrentBorrower
 
     public string LName { get; set; }
 
-    // Gets the borrower information based on the Id.
+    /// <summary>
+    /// Gets the borrower information based on the Id.
+    /// </summary>
+    /// <param name="borrowerId">The Id of the borrower to retrieve.</param>
     public CurrentBorrower(int borrowerId)
     {
         BorrowerId = borrowerId;
@@ -850,13 +880,15 @@ class CurrentBorrower
         const string InvalidBookIdMessage = "\nThat isn't a valid book Id";
         const string BookIdPrompt = "What is the Id of the book you want to issue: ";
 
-
+        // Makes sure the program doesn't crash if the user inputs a value that isn't an int.
         try
         {
             Console.Write(BookIdPrompt);
 
+            // Will cause the program to go to the catch part if it isn't an int.
             int bookId = Convert.ToInt32(Console.ReadLine());
 
+            // Connects to the database so the book can be found and borrowed.
             using var db = new LibraryContext();
 
             // Creates an BorrowedItem to add to the BorrowedItews table.
@@ -868,8 +900,10 @@ class CurrentBorrower
             Book bookToBorrow = db.Books.Find(bookId)!;
             bookToBorrow.Available = 0;
 
+            // Adds the borrowedItem to the borrowedItems table so that it can be issued.
             db.BorrowedItems.Add(borrowedBook);
 
+            // Saves the updated table.
             db.SaveChanges();
 
             // The forced non-null will trigger an error that'll get caught by the catch.
@@ -948,6 +982,7 @@ class CurrentBorrower
             }
         } catch (Exception e)
         {
+            // Writes the specific exception to the console so the user knows what they did wrong.
             Console.WriteLine(e);
 
             return false;
@@ -969,6 +1004,8 @@ class CurrentBorrower
         // Finds how many books in the list.
         int onLoanCount = borrowedItems.Count;
 
+        // The default amount of books the user has.
+        // It's 0 because it has to start counting somewhere.
         const int OverdueBooksCountDefault = 0;
 
         // The container for the overdue books.
@@ -1119,7 +1156,7 @@ class CurrentBorrower
                         Console.WriteLine(InvalidOptionMessage);
                         // Exits back into the loop.
                         break;
-                }                
+                }
             }
             catch
             {   

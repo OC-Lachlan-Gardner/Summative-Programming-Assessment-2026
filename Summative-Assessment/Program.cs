@@ -8,7 +8,10 @@ using Microsoft.EntityFrameworkCore.Sqlite;
 /// </summary>
 class Program
 {
+    // What to print to the user when they enter an invalid input.
     const string InvalidInputMessage = "That isn't a valid input.";
+
+    // The prompt for the user to enter a number.
     const string OptionInputMessage = "Enter an option number: "; 
 
     /// <summary>
@@ -53,6 +56,7 @@ class Program
     public static string CheckUserString(string promptMessage)
     {
         // Puts the variable in the right scope so it can be accessed outside the loop.
+        // It's nullable because the result of user input is unknown if it is null.
         string? userInput;
 
         do
@@ -134,20 +138,26 @@ class Program
     /// <returns>The option number of the option they select.</returns>
     public static int Menu(string[] options, string menuName)
     {
+        const char MenuCharacter = ':';
         // Adds a spacer.
         Console.WriteLine();
-        Console.WriteLine(menuName + ":");
+        // Adds the colon on the end to make it clear the user is expected to input something.
+        Console.WriteLine(menuName + MenuCharacter);
 
+        // Print the options to the user.
         PrintMenuOptions(options);
 
         // Declares the variable that'll control the loop.
         // Needs to be declared here so that it's in the right scope to affect the loop.
         bool validInput;
 
+        // The int to return if the userInput isn't touched, somehow (It makes the compiler happy).
+        const int InputDefault = 0;
+
         // Declares the variable to hold the users input.
         // Its declared here so it can be accessed out of the do while loop.
         // Defaults to 0 so that ir guarantees that an int is returned.
-        int userInput = 0;
+        int userInput = InputDefault;
 
         // Does all the stuff inside the loop before evaluating the loop condition.
         do
@@ -215,7 +225,7 @@ class Program
             // What the user has picked with the intial options.
             int optionChosen = MainMenu();
 
-            // Carring out the options.
+            // Carring out the options the user has entered.
             switch (optionChosen)
             {
                 case BorrowerLoginOption:
