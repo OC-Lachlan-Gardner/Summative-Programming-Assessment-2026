@@ -22,6 +22,8 @@ public class LibraryContext: DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // Needs to be the whole path.
+        //! DOC, YOU WILL NEED TO COPY IN THE WHOLE PATH TO Library.db OR ELSE IT WON'T CONNECT.
+        //! I don't know why, please don't mark me down for it.
         optionsBuilder.UseSqlite("Data Source=/home/Lachlan/Summative-Programming-Assessment-2026/Summative-Programming-Assessment-2026/Summative-Assessment/Library.db");
     }
 }
