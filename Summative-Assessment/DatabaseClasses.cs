@@ -24,6 +24,7 @@ public class LibraryContext: DbContext
         // Needs to be the whole path.
         //! DOC, YOU WILL NEED TO COPY IN THE WHOLE PATH TO Library.db OR ELSE IT WON'T CONNECT.
         //! I don't know why, please don't mark me down for it.
+        //! Check README.md for more info.
         optionsBuilder.UseSqlite("Data Source=/home/Lachlan/Summative-Programming-Assessment-2026/Summative-Programming-Assessment-2026/Summative-Assessment/Library.db");
     }
 }
