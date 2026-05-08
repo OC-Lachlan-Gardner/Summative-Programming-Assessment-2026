@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Sqlite;
 /// </summary>
 class Program
 {
-    const string InvalidInputMessage = "That isn't a valid option.";
+    const string InvalidInputMessage = "That isn't a valid input.";
     const string OptionInputMessage = "Enter an option number: "; 
 
     /// <summary>
@@ -156,7 +156,6 @@ class Program
             try
             {
                 Console.Write(OptionInputMessage);
-                
                 // Gets the users input and converts it to int.
                 // Throws an error if the users input is a number.
                 // This causes it to ask again.

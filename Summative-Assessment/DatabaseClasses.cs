@@ -95,6 +95,7 @@ public class Book
     {
         // The max amount of characters the title can be.
         // It's 30000 because the longest book title is 27978 characters long.
+        // I just added a bit of room for a bigger title.
         const int MaxTitleLength = 30000;
         // The longest name has 666 characters in it.
         const int MaxNameLength = 666;
@@ -164,7 +165,7 @@ public class Book
                 fName = Program.CheckUserString(AuthorFNamePrompt);
 
                 // Checks whether the input title is too long and prints the error message so they can fix it if it is.
-                if (fName.Count() > MaxNameLength)
+                if (fName.Length > MaxNameLength)
                 {
                     Console.WriteLine(NameTooLongMessage);
                 }
@@ -255,9 +256,12 @@ public class Book
 
             if (genre == trueValue)
             {
+                // Turns the the dewey number into the correct format with at least 3 digits on each side.
+                string deweyNumberFormatted = string.Format("{0:000.000####}", deweyNumber);
+
                 // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-                deweyNumberLabel = $"\n    Dewey Decimal Number: {deweyNumber}";
-                genreLabel = NonFictionLabel;
+                deweyNumberLabel = $"\n    Dewey Decimal Number: {deweyNumberFormatted}";
+                genreLabel = NonFictionLabel;  
             } else
             {
                 // Means the dewey number won't add anything if the book is fiction.
@@ -327,9 +331,12 @@ public class Book
             // Checks the books genre.
             if (book.NonFiction == trueValue)
             {
+                // Turns the the dewey number into the correct format with at least 3 digits on each side.
+                string deweyNumberFormatted = string.Format("{0:000.000####}", book.DeweyNumber);
+
                 // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
                 // It cam't be declared as a constant, I swear it isn't a magic number.
-                deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
+                deweyNumber = $"\n        Dewey Decimal Number: {deweyNumberFormatted}";
                 genre = NonFictionLabel;
             } else
             {
@@ -390,8 +397,11 @@ public class Book
                 string genre;
                 if (book.NonFiction == trueValue)
                 {
+                    // Turns the the dewey number into the correct format with at least 3 digits on each side.
+                    string deweyNumberFormatted = string.Format("{0:000.000####}", book.DeweyNumber);
+
                     // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-                    deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
+                    deweyNumber = $"\n        Dewey Decimal Number: {deweyNumberFormatted}";
                     genre = NonFictionLabel;
                 } else
                 {
@@ -451,8 +461,11 @@ public class Book
             string genre;
             if (book.NonFiction == trueValue)
             {
+                // Turns the the dewey number into the correct format with at least 3 digits on each side.
+                string deweyNumberFormatted = string.Format("{0:000.000####}", book.DeweyNumber);
+
                 // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-                deweyNumber = $"\n        Dewey Decimal Number: {book.DeweyNumber}";
+                deweyNumber = $"\n        Dewey Decimal Number: {deweyNumberFormatted}";
                 genre = NonFictionLabel;
             } else
             {
@@ -532,8 +545,11 @@ public class Book
                 string genre;
                 if (bookToReturn.NonFiction == trueValue)
                 {
+                    // Turns the the dewey number into the correct format with at least 3 digits on each side.
+                    string deweyNumberFormatted = string.Format("{0:000.000####}", bookToReturn.DeweyNumber);
+
                     // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-                    deweyNumber = $"\n    Dewey Decimal Number: {bookToReturn.DeweyNumber}";
+                    deweyNumber = $"\n    Dewey Decimal Number: {deweyNumberFormatted}";
                     genre = NonFictionLabel;
                 } else
                 {
@@ -649,9 +665,33 @@ public class Borrower
         const string AddBorrowerFNameMessage = "Please enter your first name: ";
         const string AddBorrowerLNameMessage = "Please enter your last name: ";
 
+        // The max amount of characters a name can have.
+        const int MaxNameLength = 666;
+
+        // Declares the string to print when the name is over the max length.
+        string NameTooLongMessage = $"Name can't be over {MaxNameLength} characters: ";
+        
         // Creates a new instance of borrower and then fills it in.
         string fName = Program.CheckUserString(AddBorrowerFNameMessage);
+
+        // Makes sure the name is less than the max.
+        while (fName.Length > MaxNameLength)
+        {
+            // Asks again.
+            fName = Program.CheckUserString(NameTooLongMessage);
+        }
+
+        // Creates a new instance of borrower and then fills it in.
         string lName = Program.CheckUserString(AddBorrowerLNameMessage);
+
+        // Makes sure the name is less than the max.
+        while (lName.Length > MaxNameLength)
+        {
+            // Asks again.
+            lName = Program.CheckUserString(NameTooLongMessage);
+        }
+
+        // Creates the new borrower using this information.
         Borrower newBorrower = new Borrower(fName, lName);
 
         // Connects to the database so the new borrower can be added.
@@ -1007,7 +1047,7 @@ class CurrentBorrower
     /// </summary>
     void BookOperations()
     {
-        const string OperationPrompt = "\nEnter the number of the book you would like to renew, or 0 to go back to Borrower Menu: ";
+        const string OperationPrompt = "\nEnter the option number of the book you would like to renew, or 0 to go back to Borrower Menu: ";
         const string InvalidOptionMessage = "That isn't a valid option.";
 
         /// The number the user has to enter to quit the book operations menu.
@@ -1018,6 +1058,9 @@ class CurrentBorrower
 
         // Collects all the books borrowed by the current borrower.
         List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == BorrowerId).ToList();
+
+        // Sorts the books by date due so they match up with what's being displayed.
+        List<BorrowedItem> orderedBooks = borrowedItems.OrderBy(book => book.DateDue).ToList();
 
         // Allows the loop to start.
         // It's false because there isn't any input right now.
@@ -1042,7 +1085,7 @@ class CurrentBorrower
                 userInput = Convert.ToInt32(Console.ReadLine());
 
                 // userInput minus 1 so it matches up to the list index, which starts at 0.
-                BorrowedItem chosenBook = borrowedItems[userInput - 1];
+                BorrowedItem chosenBook = orderedBooks[userInput - 1];
 
                 // Gets all the information about the book after getting its Id from the BorrowedItems table.
                 // Getting it this way means that it can't accidentally get a book that hasn't been borrowed.
