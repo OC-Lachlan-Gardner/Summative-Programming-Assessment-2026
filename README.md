@@ -8,4 +8,4 @@ Replace the highlighted path with your Library.db full path.
 
 It's on line 27 in DatabaseClasses.cs.
 
-Sorry about the inconvenience, E
+Sorry about the inconvenience.
