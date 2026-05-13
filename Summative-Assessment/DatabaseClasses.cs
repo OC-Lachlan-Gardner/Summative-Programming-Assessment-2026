@@ -544,8 +544,8 @@ public class Book
     public static void ReturnBook()
     {
         const string BookIdPrompt = "Please enter the Id of the book you want to return: ";
-        const string InvalidIdMessage = "That isn't a valid book Id. ";
-        const string SuccessfulllyReturnedMessage = "Successfully returned book. ";
+        const string InvalidIdMessage = "\nThat isn't a valid book Id. ";
+        const string SuccessfulllyReturnedMessage = "\nSuccessfully returned book. ";
 
         // Declares the variable that'll control the loop.
         // Needs to be declared here so that it's in the right scope to affect the loop.
@@ -599,7 +599,8 @@ public class Book
                 
                 string bookToReturnPrint = 
                 $"""
-                {bookToReturn.Title}
+
+                1) {bookToReturn.Title}
                     Author: {bookToReturn.AuthorFName} {bookToReturn.AuthorLName}
                     Genre: {genre}{deweyNumber}
                 """;
@@ -701,7 +702,7 @@ public class Borrower
 
     public static void ListAllBorrowers()
     {
-        // Connect to the database in order to get the books.
+        // Connect to the database in order to get the borrowers.
         using var db = new LibraryContext();
 
         // Gets all the books and makes them into a list.
@@ -1232,7 +1233,7 @@ class CurrentBorrower
         BorrowerStats();
 
         // What options are available to the user in this menu.
-        string[] options = ["List borrowed books", "Issue a book", "Search books", "Logout"];
+        string[] options = ["List borrowed books", "Issue a book", "Return book", "Search books", "Logout"];
 
         // Controls the loop.
         bool loggedIn = true;
@@ -1241,25 +1242,34 @@ class CurrentBorrower
             // Prints a menu and stores the option they chose.
             int optionChosen = Program.Menu(options, menuName);
 
+            const int ListOption = 1;
+            const int IssueOption = 2;
+            const int ReturnOption = 3;
+            const int SearchOption = 4;
+            const int LogoutOption = 5;
+
             // Acting on their choice.
             switch (optionChosen)
             {
-                case 1:
+                case ListOption:
                     // Checks if the user has books and asks the user to select a book if there are any.
                     if (ListBorrowerBooks())
                     {
                         BookOperations();
                     }
                     break;
-                case 2:
+                case IssueOption:
                     BorrowBook();
                     break;
-                case 3:
+                case ReturnOption:
+                    Book.ReturnBook();
+                    break;
+                case SearchOption:
                     // So they can search for books without having to exit the borrower menu.
                     // In case they quickly want to search for something, maybe the what book in the series it is.
                     Book.SearchBooks();
                     break;
-                default:
+                case LogoutOption:
                     // Exits the loop.
                     // This will kick it back into the main menu.
                     loggedIn = false;
