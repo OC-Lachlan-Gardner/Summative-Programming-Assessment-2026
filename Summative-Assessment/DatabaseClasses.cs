@@ -116,12 +116,12 @@ public class Book
         // The max amount of characters the title can be.
         // It's 30000 because the longest book title is 27978 characters long.
         // I just added a bit of room for a bigger title.
-        const int MaxTitleLength = 30000;
+        const int MaxTitleLength = 60;
         // The longest name has 666 characters in it.
-        const int MaxNameLength = 666;
+        const int MaxNameLength = 30;
 
         // The prompts to use when asking for the user's input.
-        const string TitlePrompt = "Enter the book title: ";
+        const string TitlePrompt = "Enter the title: ";
         const string AuthorFNamePrompt = "\nEnter the author's first name: ";
         const string AuthorLNamePrompt = "Enter the author's last name: ";
         const string NonFictionPrompt = "\nIs the book non-fiction. Y/N: ";
@@ -165,7 +165,7 @@ public class Book
             // Gets the basic book information from the user.
             do
             {
-                const string TitleTooLongMessage = "\nTitle is too long";
+                string TitleTooLongMessage = $"\nTitle is too long, it must be {MaxTitleLength} or less.";
 
                 // Makes sure the title isn't null.
                 title = Program.CheckUserString(TitlePrompt);
@@ -732,7 +732,7 @@ public class Borrower
         const string AddBorrowerLNameMessage = "Please enter your last name: ";
 
         // The max amount of characters a name can have.
-        const int MaxNameLength = 666;
+        const int MaxNameLength = 30;
 
         // Declares the string to print when the name is over the max length.
         string NameTooLongMessage = $"Name can't be over {MaxNameLength} characters: ";
@@ -1124,7 +1124,7 @@ class CurrentBorrower
     /// </summary>
     void BookOperations()
     {
-        const string OperationPrompt = "\nEnter the option number of the book you would like to renew, or 0 to go back to Borrower Menu: ";
+        const string OperationPrompt = "\nEnter the option number of the book to renew, or 0 for Borrower Menu: ";
         const string InvalidOptionMessage = "That isn't a valid option.";
 
         /// The number the user has to enter to quit the book operations menu.
