@@ -769,7 +769,7 @@ public class Borrower
         db.SaveChanges();
 
         // Lets the user know the creation was successful and provedes some basic information.
-        string successMessage = $"\nCreated new borrower \nName: {newBorrower.FName} {newBorrower.LName} \nId: {newBorrower.Id}";
+        string successMessage = $"\nCreated new borrower. \nName: {newBorrower.FName} {newBorrower.LName} \n    Id: {newBorrower.Id}";
 
         Console.WriteLine(successMessage);
     }
