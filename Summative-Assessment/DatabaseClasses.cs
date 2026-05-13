@@ -596,7 +596,7 @@ public class Book
                     string deweyNumberFormatted = string.Format("{0:000.000####}", bookToRemove.DeweyNumber);
 
                     // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
-                    deweyNumber = $"\n    Dewey Decimal Number: {deweyNumberFormatted}";
+                    deweyNumber = $"\n        Dewey Decimal Number: {deweyNumberFormatted}";
                     genre = NonFictionLabel;
                 } else
                 {
@@ -619,11 +619,11 @@ public class Book
                 string bookToReturnPrint = 
                 $"""
 
-                Title: {bookToRemove.Title}
-                    Id: {bookToRemove.Id}
-                    Author: {bookToRemove.AuthorFName} {bookToRemove.AuthorLName}
-                    Genre: {genre}{deweyNumber}
-                    Available: {available}
+                    Title: {bookToRemove.Title}
+                        Id: {bookToRemove.Id}
+                        Author: {bookToRemove.AuthorFName} {bookToRemove.AuthorLName}
+                        Genre: {genre}{deweyNumber}
+                        Available: {available}
                 """;
 
                 Console.WriteLine(bookToReturnPrint);
@@ -919,6 +919,95 @@ public class Borrower
 
         Console.WriteLine(successMessage);
     }
+
+     /// <summary>
+    /// Removes a borrower from the Borrowers table.
+    /// </summary>
+    public static void RemoveBorrower()
+    {
+        const string BorrowerIdPrompt = "Please enter the Id of the borrower you want to remove: ";
+        const string InvalidIdMessage = "\nThat isn't a valid borrower Id. ";
+        const string SuccessfulllyRemovedMessage = "\nSuccessfully removed borrower. ";
+
+        // Declares the variable that'll control the loop.
+        // Needs to be declared here so that it's in the right scope to affect the loop.
+        bool validInput;
+
+        // Declares the variable to hold the users input.
+        // Its declared here so it can be accessed out of the do while loop.
+        int userInput;
+
+        // Does all the stuff inside the loop before evaluating the loop condition.
+        do
+        {
+            // Tries to convert the user input to int.
+            try
+            {
+                Console.Write(BorrowerIdPrompt);
+
+                // Gets the users input and converts it to int.
+                // Throws an error if the users input ism't a number.
+                // This causes it to ask again.
+                userInput = Convert.ToInt32(Console.ReadLine());
+
+                // Connects to the database.
+                var db = new LibraryContext();
+
+                // The forced non-null will trigger an error that'll get caught by the catch.
+                Borrower borrowerToRemove = db.Borrowers.Find(userInput)!;
+                
+                string bookToReturnPrint = 
+                $"""
+
+                    Name: {borrowerToRemove.FName} {borrowerToRemove.LName}
+                        Id: {borrowerToRemove.Id}
+                """;
+
+                Console.WriteLine(bookToReturnPrint);
+
+                // Making sure the user does actually want to remove the book.
+                const string ConfirmPrompt = "\nDo you want to remove this borrower from the library? Y/N: ";
+
+                const string InvalidCharInputPrompt = "That isn't a valid answer.\nPlease enter Y or N.";
+
+                // The valid inputs to the confirmation prompt.
+                List<char> validCharInputAnswers = new List<char> {'y', 'n'};
+
+                // Which option in the valid inputs list is the one to confirm the deletion.
+                const int ConfirmIndex = 0;
+
+                // Gets the users answer to the removal confirmation.
+                char confirm = Program.CheckUserChar(ConfirmPrompt, InvalidCharInputPrompt, validCharInputAnswers);
+
+                // If the user confirmed the removal.
+                if (char.ToLower(confirm) == validCharInputAnswers[ConfirmIndex])
+                {
+                    // Removes the book from the Books table.
+                    db.Remove(borrowerToRemove);
+
+                    // Updates the db.
+                    db.SaveChanges();
+
+                    Console.WriteLine(SuccessfulllyRemovedMessage);
+                } else
+                {
+                    // The message to let the user know they've cancelled the book addition.
+                    const string CancelMessage = "Cancelled borrower removal.";
+
+                    Console.WriteLine(CancelMessage);
+                }  
+                // Tells the loop that the user has entered a valid input so it can stop.
+                validInput = true;
+            } catch
+            {
+                Console.WriteLine(InvalidIdMessage);
+
+                // Repeats the loop again so the user has another chance to input a valid option. 
+                validInput = false;
+            }
+        } while (!validInput);
+    }
+
 }
 
 /// <summary>
