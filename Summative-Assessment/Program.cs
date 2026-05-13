@@ -196,7 +196,7 @@ class Program
         const string menuName = "Main Menu";
 
         // The list of options for the user to choose from at the start of the program.
-        string[] firstMenuOptions = ["Choose Borrower", "Add New Borrower", "Search Books", "Return Book", "Add New Book", "Quit"];
+        string[] firstMenuOptions = ["List All Borrowers", "Choose Borrower", "Add New Borrower", "List All Books", "Search Books", "Return Book", "Add New Book", "Quit"];
 
         // Creates a menu with those options.
         return Menu(firstMenuOptions, menuName);
@@ -207,12 +207,14 @@ class Program
         const string InvalidOptionMessage = "That isn't a valid option.";
 
         // Which option lines up with switch statement.
-        const int BorrowerLoginOption = 1;
-        const int AddNewBorrowerOption = 2;
-        const int SearchBookOption = 3;
-        const int ReturnBookOption = 4;
-        const int AddNewBookOption = 5;
-        const int QuitOption = 6;
+        const int ListAllBorrowersOption = 1;
+        const int BorrowerLoginOption = 2;
+        const int AddNewBorrowerOption = 3;
+        const int ListAllBooksOption = 4;
+        const int SearchBookOption = 5;
+        const int ReturnBookOption = 6;
+        const int AddNewBookOption = 7;
+        const int QuitOption = 8;
 
         PrintWelcomeMessage();
 
@@ -228,6 +230,11 @@ class Program
             // Carring out the options the user has entered.
             switch (optionChosen)
             {
+                //! This doesn't work.
+                //! And list borrowers needs commenting.
+                case ListAllBorrowersOption:
+                    Borrower.ListAllBorrowers();
+                    break;
                 case BorrowerLoginOption:
                     // Logs into the borrower.
                     CurrentBorrower currentBorrower = CurrentBorrower.ChooseBorrower();
@@ -236,6 +243,11 @@ class Program
                 case AddNewBorrowerOption:
                     // Adds a new borrower to the borrowers table.
                     Borrower.AddNewBorrower();
+                    break;
+                case ListAllBooksOption:
+                    // Lists all the books in the database.
+                    // Means the user can find the book Id.
+                    Book.ListAllBooks();
                     break;
                 case SearchBookOption:
                     // Searches through the Books table to find matching books.

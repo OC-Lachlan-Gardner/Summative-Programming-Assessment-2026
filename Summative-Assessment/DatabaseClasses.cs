@@ -94,6 +94,21 @@ public class Book
     }
 
     /// <summary>
+    /// Lists all the books in the database so the user can find the Ids.
+    /// </summary>
+    public static void ListAllBooks()
+    {
+        // Connect to the database in order to get the books.
+        using var db = new LibraryContext();
+
+        // Gets all the books and makes them into a list.
+        List<Book> allBooks = db.Books.ToList<Book>();
+
+        // Prints them out in a nice way.
+        ListBooks(allBooks);
+    }
+
+    /// <summary>
     /// Makes a new book instance and adds it to the books table.
     /// </summary>
     public static void AddNewBook()
@@ -355,7 +370,7 @@ public class Book
 
                 // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
                 // It cam't be declared as a constant, I swear it isn't a magic number.
-                deweyNumber = $"\n        Dewey Decimal Number: {deweyNumberFormatted}";
+                deweyNumber = $"\n           Dewey Decimal Number: {deweyNumberFormatted}";
                 genre = NonFictionLabel;
             } else
             {
@@ -380,10 +395,10 @@ public class Book
             $"""
 
                 {books.IndexOf(book) + 1}) {book.Title}
-                    Book Id: {book.Id}
-                    Author: {book.AuthorFName} {book.AuthorLName}
-                    Genre: {genre}  {deweyNumber}
-                    Availablility: {available}
+                       Book Id: {book.Id}
+                       Author: {book.AuthorFName} {book.AuthorLName}
+                       Genre: {genre}{deweyNumber}
+                       Availablility: {available}
             """;
 
             Console.WriteLine(bookPrintStructure);
@@ -683,6 +698,26 @@ public class Borrower
 
     // Last name of the borrower.
     public string LName { get; private set; }
+
+    public static void ListAllBorrowers()
+    {
+        // Connect to the database in order to get the books.
+        using var db = new LibraryContext();
+
+        // Gets all the books and makes them into a list.
+        List<Borrower> allBorrowers = db.Borrowers.ToList<Borrower>();
+
+        foreach (Borrower borrower in allBorrowers)
+        {
+            string printMessage = 
+            $"""
+
+                Id: {borrower.Id}
+                    Name: {borrower.FName} {borrower.LName}
+            
+            """;
+        }
+    }
 
     /// <summary>
     /// Makes a new Borrower and adds it to the Borrowers table.
