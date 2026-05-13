@@ -713,8 +713,8 @@ public class Borrower
             string printMessage = 
             $"""
 
-                Id: {borrower.Id}
-                    Name: {borrower.FName} {borrower.LName}
+                Name: {borrower.FName} {borrower.LName}{borrower.Id}
+                    Id: {borrower.Id}
             
             """;
 
