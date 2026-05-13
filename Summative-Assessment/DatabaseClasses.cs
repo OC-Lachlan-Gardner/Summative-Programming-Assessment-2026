@@ -447,6 +447,9 @@ public class Book
                     genre = FictionLabel;
                 }
 
+                // MaxRenews - Renew count so that the user knows how many renews they have left instead of just how many times they've done.
+                string renewedLabel = $"{BorrowedItem.MaxRenews - borrowedBook.Renewed} Renews Left.";
+
                 // Index + 1 because it starts at 0.
                 string bookPrintStructure = 
                 $"""
@@ -457,6 +460,7 @@ public class Book
                         Genre: {genre}{deweyNumber}
                         Issued: {borrowedBook.DateIssued}
                         Due: {borrowedBook.DateDue}
+                        {renewedLabel}
                 """;
 
                 Console.WriteLine(bookPrintStructure);
@@ -512,16 +516,22 @@ public class Book
                 genre = FictionLabel;
             }
 
+             // MaxRenews - Renew count so that the user knows how many renews they have left instead of just how many times they've done.
+            string renewedLabel = $"{BorrowedItem.MaxRenews - borrowedBook.Renewed} Renews Left.";
+
+
             // Prints the book out in a nice way.
             string bookPrintStructure = 
             $"""
 
-                {book.Title}
+                Title: {book.Title}
                     Book Id: {book.Id}
                     Author: {book.AuthorFName} {book.AuthorLName}
                     Genre: {genre}{deweyNumber}
                     Issued: {borrowedBook.DateIssued}
                     Due: {borrowedBook.DateDue}
+                    {renewedLabel}
+                    
             """;
 
             Console.WriteLine(bookPrintStructure);
@@ -600,7 +610,7 @@ public class Book
                 string bookToReturnPrint = 
                 $"""
 
-                1) {bookToReturn.Title}
+                Title: {bookToReturn.Title}
                     Author: {bookToReturn.AuthorFName} {bookToReturn.AuthorLName}
                     Genre: {genre}{deweyNumber}
                 """;
@@ -713,7 +723,7 @@ public class Borrower
             string printMessage = 
             $"""
 
-                Name: {borrower.FName} {borrower.LName}{borrower.Id}
+                Name: {borrower.FName} {borrower.LName}
                     Id: {borrower.Id}
             
             """;
@@ -769,7 +779,7 @@ public class Borrower
         db.SaveChanges();
 
         // Lets the user know the creation was successful and provedes some basic information.
-        string successMessage = $"\nCreated new borrower. \nName: {newBorrower.FName} {newBorrower.LName} \n    Id: {newBorrower.Id}";
+        string successMessage = $"\nCreated new borrower. \n  Name: {newBorrower.FName} {newBorrower.LName} \n      Id: {newBorrower.Id}";
 
         Console.WriteLine(successMessage);
     }
@@ -1090,7 +1100,7 @@ class CurrentBorrower
             BorrowedItem bookToReturn = db.BorrowedItems.Find(bookId)!;
 
             // Only renews if the user hasn't renewed too many times already.
-            if (bookToReturn.Renewed <= BorrowedItem.MaxRenews)
+            if (bookToReturn.Renewed < BorrowedItem.MaxRenews)
             {
                 // Pushes the due date back.
                 bookToReturn.DateDue = bookToReturn.DateDue.AddDays(BorrowedItem.RenewLength);
