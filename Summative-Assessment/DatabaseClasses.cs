@@ -549,6 +549,141 @@ public class Book
     }
 
     /// <summary>
+    /// Removes a book from the Books table.
+    /// </summary>
+    public static void RemoveBook()
+    {
+        const string BookIdPrompt = "Please enter the Id of the book you want to remove: ";
+        const string InvalidIdMessage = "\nThat isn't a valid book Id. ";
+        const string SuccessfulllyRemovedMessage = "\nSuccessfully removed book. ";
+
+        // Declares the variable that'll control the loop.
+        // Needs to be declared here so that it's in the right scope to affect the loop.
+        bool validInput;
+
+        // Declares the variable to hold the users input.
+        // Its declared here so it can be accessed out of the do while loop.
+        int userInput;
+
+        // Does all the stuff inside the loop before evaluating the loop condition.
+        do
+        {
+            // Tries to convert the user input to int.
+            try
+            {
+                Console.Write(BookIdPrompt);
+
+                // Gets the users input and converts it to int.
+                // Throws an error if the users input ism't a number.
+                // This causes it to ask again.
+                userInput = Convert.ToInt32(Console.ReadLine());
+
+                // Connects to the database.
+                var db = new LibraryContext();
+
+                // The forced non-null will trigger an error that'll get caught by the catch.
+                Book bookToRemove = db.Books.Find(userInput)!;
+
+                // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
+                // Declared out here so that it can be used outside the if else statements.
+                string deweyNumber;
+                
+                // Turns the int into an easily readable string.
+                string genre;
+                if (bookToRemove.NonFiction == trueValue)
+                {
+                    // Turns the the dewey number into the correct format with at least 3 digits on each side.
+                    string deweyNumberFormatted = string.Format("{0:000.000####}", bookToRemove.DeweyNumber);
+
+                    // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                    deweyNumber = $"\n    Dewey Decimal Number: {deweyNumberFormatted}";
+                    genre = NonFictionLabel;
+                } else
+                {
+                    // Means the dewey number won't add anything if the book is fiction.
+                    deweyNumber = "";
+                    genre = FictionLabel;
+                }
+
+                // Needs to interperet the int provided by the database.
+                string available;
+                if (bookToRemove.Available == trueValue)
+                {
+                    available = AvailableLabel;
+                } else
+                {
+                    available = UnavailableLabel;
+                }
+
+                
+                string bookToReturnPrint = 
+                $"""
+
+                Title: {bookToRemove.Title}
+                    Id: {bookToRemove.Id}
+                    Author: {bookToRemove.AuthorFName} {bookToRemove.AuthorLName}
+                    Genre: {genre}{deweyNumber}
+                    Available: {available}
+                """;
+
+                Console.WriteLine(bookToReturnPrint);
+
+                // Makes sure the book isn't on loan right now.
+                if (bookToRemove.Available != trueValue)
+                {
+                    const string BookUnavailable = "\nThat book is on loan right now, so can't be removed.";
+
+                    // Lets the user know why the book hasn't been removed.
+                    Console.WriteLine(BookUnavailable);
+
+                    // Exits the function back to the main menu.
+                    return;
+                }
+
+                // Making sure the user does actually want to remove the book.
+                const string ConfirmPrompt = "\nDo you want to remove this book from the library? Y/N: ";
+
+                const string InvalidCharInputPrompt = "That isn't a valid answer.\nPlease enter Y or N.";
+
+                // The valid inputs to the confirmation prompt.
+                List<char> validCharInputAnswers = new List<char> {'y', 'n'};
+
+                // Which option in the valid inputs list is the one to confirm the deletion.
+                const int ConfirmIndex = 0;
+
+                // Gets the users answer to the removal confirmation.
+                char confirm = Program.CheckUserChar(ConfirmPrompt, InvalidCharInputPrompt, validCharInputAnswers);
+
+                // If the user confirmed the removal.
+                if (char.ToLower(confirm) == validCharInputAnswers[ConfirmIndex])
+                {
+                    // Removes the book from the Books table.
+                    db.Remove(bookToRemove);
+
+                    // Updates the db.
+                    db.SaveChanges();
+
+                    Console.WriteLine(SuccessfulllyRemovedMessage);
+                } else
+                {
+                    // The message to let the user know they've cancelled the book addition.
+                    const string CancelMessage = "Cancelled book removal.";
+
+                    Console.WriteLine(CancelMessage);
+                }  
+                // Tells the loop that the user has entered a valid input so it can stop.
+                validInput = true;
+            } catch
+            {
+                Console.WriteLine(InvalidIdMessage);
+
+                // Repeats the loop again so the user has another chance to input a valid option. 
+                validInput = false;
+            }
+        } while (!validInput);
+    }
+
+    /// <summary>
     /// Asks the user for a book id then returns it if it's valid.
     /// </summary>
     public static void ReturnBook()
@@ -611,6 +746,7 @@ public class Book
                 $"""
 
                 Title: {bookToReturn.Title}
+                    Id: {bookToReturn.Id}
                     Author: {bookToReturn.AuthorFName} {bookToReturn.AuthorLName}
                     Genre: {genre}{deweyNumber}
                 """;

@@ -196,7 +196,7 @@ class Program
         const string menuName = "Main Menu";
 
         // The list of options for the user to choose from at the start of the program.
-        string[] firstMenuOptions = ["List All Borrowers", "Choose Borrower", "Add New Borrower", "List All Books", "Search Books", "Return Book", "Add New Book", "Quit"];
+        string[] firstMenuOptions = ["List All Borrowers", "Choose Borrower", "Add New Borrower", "List All Books", "Search Books", "Return Book", "Add New Book", "Remove A Book", "Quit"];
 
         // Creates a menu with those options.
         return Menu(firstMenuOptions, menuName);
@@ -214,7 +214,8 @@ class Program
         const int SearchBookOption = 5;
         const int ReturnBookOption = 6;
         const int AddNewBookOption = 7;
-        const int QuitOption = 8;
+        const int RemoveBookOption = 8;
+        const int QuitOption = 9;
 
         PrintWelcomeMessage();
 
@@ -259,6 +260,9 @@ class Program
                     break;
                 case AddNewBookOption:
                     Book.AddNewBook();
+                    break;
+                case RemoveBookOption:
+                    Book.RemoveBook();
                     break;
                 case QuitOption:
                     // Exits the loop.
