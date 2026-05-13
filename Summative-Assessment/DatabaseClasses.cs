@@ -716,6 +716,8 @@ public class Borrower
                     Name: {borrower.FName} {borrower.LName}
             
             """;
+
+            Console.WriteLine(printMessage);
         }
     }
 
