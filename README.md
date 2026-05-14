@@ -6,6 +6,6 @@ E.g. optionsBuilder.UseSqlite("Data Source=<mark>/path/to/Summative-Programming-
 Replace the highlighted path with your Library.db full path.  
  NOT RELATIVE PATH, it doesn't work.
 
-It's on line 27 in DatabaseClasses.cs.
+It's on line 28 in DatabaseClasses.cs.
 
 Sorry about the inconvenience.
