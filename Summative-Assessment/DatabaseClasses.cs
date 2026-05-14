@@ -970,6 +970,20 @@ public class Borrower
 
                 Console.WriteLine(bookToReturnPrint);
 
+                // Gets a list of all the books the borrowerr has on their account.
+                // This means the borrower can be checked to makes sure they aren't being removed with books on their account.
+                List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == borrowerToRemove.Id).ToList();
+                
+                if (borrowedItems.Count() > 0)
+                {
+                    string borrowerHasBookMessage = $"\nThe borrower you entered has {borrowedItems.Count()} books on loan.\nThis means they can't be removed. Return all the books on their account first.";
+
+                    Console.WriteLine(borrowerHasBookMessage);
+
+                    // Exits the function without removing the book.
+                    return;
+                }
+
                 // Making sure the user does actually want to remove the book.
                 const string ConfirmPrompt = "\nDo you want to remove this borrower from the library? Y/N: ";
 
