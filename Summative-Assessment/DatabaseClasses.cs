@@ -64,7 +64,7 @@ public class Book
     const string UnavailableLabel = "Not Available";
 
     // What integer counts as true.
-    const int trueValue = 1;
+    public const int trueValue = 1;
 
     const int AvailableDefault = 1;
 
@@ -104,7 +104,7 @@ public class Book
         // Gets all the books and makes them into a list.
         List<Book> allBooks = db.Books.ToList<Book>();
 
-        // Prints them out in a nice way.
+        // Prints them all out in a nice way.
         ListBooks(allBooks);
     }
 
@@ -165,7 +165,7 @@ public class Book
             // Gets the basic book information from the user.
             do
             {
-                string TitleTooLongMessage = $"\nTitle is too long, it must be {MaxTitleLength} or less.";
+                string TitleTooLongMessage = $"\nTitle is too long, it must be {MaxTitleLength} characters or less.";
 
                 // Makes sure the title isn't null.
                 title = Program.CheckUserString(TitlePrompt);
@@ -183,7 +183,7 @@ public class Book
             do
             {
                 // The message to print if the name is too long.
-                const string NameTooLongMessage = "\nName is too long";
+                string NameTooLongMessage = $"\nName is too long. It must be {MaxNameLength} characters or less.";
 
                 // Makes sure the title isn't null.
                 fName = Program.CheckUserString(AuthorFNamePrompt);
@@ -201,7 +201,7 @@ public class Book
             do
             {
                 // The message to print if the name is too long.
-                const string NameTooLongMessage = "\nName is too long";
+                string NameTooLongMessage = $"\nName is too long. It must be {MaxNameLength} characters or less.";
 
                 // Makes sure the name isn't null.
                 lName = Program.CheckUserString(AuthorLNamePrompt);
@@ -516,7 +516,7 @@ public class Book
                 genre = FictionLabel;
             }
 
-             // MaxRenews - Renew count so that the user knows how many renews they have left instead of just how many times they've done.
+            // MaxRenews - Renew count so that the user knows how many renews they have left instead of just how many times they've done.
             string renewedLabel = $"{BorrowedItem.MaxRenews - borrowedBook.Renewed} Renews Left.";
 
 
@@ -614,8 +614,8 @@ public class Book
                 {
                     available = UnavailableLabel;
                 }
-
                 
+                // Prints the book out in a nicely readable way.
                 string bookToReturnPrint = 
                 $"""
 
@@ -803,7 +803,7 @@ public class Book
         List<Book> booksTitles = db.Books.Where(b => EF.Functions.Like(b.Title, keyword)).ToList();
         List<Book> booksAuthorsFName = db.Books.Where(b => EF.Functions.Like(b.AuthorFName, keyword)).ToList();
         List<Book> booksAuthorsLName = db.Books.Where(b => EF.Functions.Like(b.AuthorLName, keyword)).ToList();
-        
+
         // Adds all the results together without duplicates.
         List<Book> searchResults = booksTitles.Union(booksAuthorsLName).Union(booksAuthorsFName).ToList();
 
@@ -846,16 +846,21 @@ public class Borrower
     // Last name of the borrower.
     public string LName { get; private set; }
 
+    /// <summary>
+    /// List all the borrowers in the Borrowers table.
+    /// </summary>
     public static void ListAllBorrowers()
     {
         // Connect to the database in order to get the borrowers.
         using var db = new LibraryContext();
 
-        // Gets all the books and makes them into a list.
+        // Gets all the borrowers and makes them into a list.
         List<Borrower> allBorrowers = db.Borrowers.ToList<Borrower>();
 
+        // Iterates through all the borrowers in the list.
         foreach (Borrower borrower in allBorrowers)
         {
+            // Prints the borrowers in a nice way.
             string printMessage = 
             $"""
 
@@ -988,6 +993,7 @@ public class Borrower
                     // Updates the db.
                     db.SaveChanges();
 
+                    // Makes sure the user knows what is happening.
                     Console.WriteLine(SuccessfulllyRemovedMessage);
                 } else
                 {
@@ -1355,12 +1361,36 @@ class CurrentBorrower
         db.SaveChanges();
     }
 
+    public static void ReturnBook(int bookId)
+    {
+        // Connects to the database.
+        var db = new LibraryContext();
+
+        // The forced non-null will trigger an error that'll get caught by the catch.
+        BorrowedItem borrowedBookToReturn = db.BorrowedItems.Find(bookId)!;
+        // Gets the full book information using the connected table.
+        Book bookToReturn = db.Books.Find(borrowedBookToReturn.Id)!;
+
+        // Removes the book from the borrowed items table.
+        db.Remove(borrowedBookToReturn);
+
+        // Marks the book as available to borrow again.
+        bookToReturn.Available = Book.trueValue;
+
+        // Updates the db.
+        db.SaveChanges();
+
+        const string SuccessfulllyReturnedMessage = "Successfully returned book. ";
+
+        Console.WriteLine(SuccessfulllyReturnedMessage);
+    }
+
     /// <summary>
     /// What actions the user can take after listing the books.
     /// </summary>
     void BookOperations()
     {
-        const string OperationPrompt = "\nEnter the option number of the book to renew, or 0 for Borrower Menu: ";
+        const string OperationPrompt = "\nEnter the option number of the book to modify, or 0 for Borrower Menu: ";
         const string InvalidOptionMessage = "That isn't a valid option.";
 
         /// The number the user has to enter to quit the book operations menu.
@@ -1409,23 +1439,32 @@ class CurrentBorrower
                 Book.ListBorrowedBooks(book);
 
                 // Needs to print out the list of options then take an input.
-                string[] bookOptions = ["Renew book", "Cancel"];
+                string[] bookOptions = ["Renew book", "Return book", "Cancel"];
                 const string menuName = "Book Menu";
 
                 // Makes a menu with the options from the list.
                 int optionChosen = Program.Menu(bookOptions, menuName);
 
+                const int RenewOption = 1;
+                const int ReturnOption = 2;
+                const int CancelOption = 3;
+
                 // What to do based on the option chosen.
                 switch (optionChosen)
                 {
-                    case 1:
+                    case RenewOption:
                         // The user has chosen to renew, so it gets the Id from the book they initially chose and passes it to the Renew function.
                         int bookToRenew = chosenBook.Id;
 
                         // Renews the book if it can be renewed.
                         RenewBook(bookToRenew);
                         break;
-                    case 2:
+                    case ReturnOption:
+                        // Gets the Id of the book to return from the book they've chosen.
+                        int bookToReturn = chosenBook.Id;
+                        ReturnBook(bookToReturn);
+                        break;
+                    case CancelOption:
                         // Exits the book operations function and returns to the borrowers menu.
                         return;
                     default:
@@ -1468,7 +1507,7 @@ class CurrentBorrower
         BorrowerStats();
 
         // What options are available to the user in this menu.
-        string[] options = ["List borrowed books", "Issue a book", "Return book", "Search books", "Logout"];
+        string[] options = ["List borrowed books", "List all books", "Issue a book", "Return book", "Search books", "Logout"];
 
         // Controls the loop.
         bool loggedIn = true;
@@ -1477,11 +1516,13 @@ class CurrentBorrower
             // Prints a menu and stores the option they chose.
             int optionChosen = Program.Menu(options, menuName);
 
+            // Could this be an enum?
             const int ListOption = 1;
-            const int IssueOption = 2;
-            const int ReturnOption = 3;
-            const int SearchOption = 4;
-            const int LogoutOption = 5;
+            const int ListAllBooksOptions = 2;
+            const int IssueOption = 3;
+            const int ReturnOption = 4;
+            const int SearchOption = 5;
+            const int LogoutOption = 6;
 
             // Acting on their choice.
             switch (optionChosen)
@@ -1492,6 +1533,9 @@ class CurrentBorrower
                     {
                         BookOperations();
                     }
+                    break;
+                case ListAllBooksOptions:
+                    Book.ListAllBooks();
                     break;
                 case IssueOption:
                     BorrowBook();
