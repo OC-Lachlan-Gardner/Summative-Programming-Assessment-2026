@@ -974,6 +974,7 @@ public class Borrower
                 // This means the borrower can be checked to makes sure they aren't being removed with books on their account.
                 List<BorrowedItem> borrowedItems = db.BorrowedItems.Where(b => b.BorrowerId == borrowerToRemove.Id).ToList();
                 
+                // In case the user has books on loan, returns early.
                 if (borrowedItems.Count() > 0)
                 {
                     string borrowerHasBookMessage = $"\nThe borrower you entered has {borrowedItems.Count()} books on loan.\nThis means they can't be removed. Return all the books on their account first.";
