@@ -56,12 +56,12 @@ public class Book
     public int Available { get; set; }
 
     // What to call books that are non=fiction or fiction.
-    const string NonFictionLabel = "Non-Fiction";
-    const string FictionLabel = "Fiction";
+    public const string NonFictionLabel = "Non-Fiction";
+    public const string FictionLabel = "Fiction";
 
     // What to label the books when they're available or not.
-    const string AvailableLabel = "Available";
-    const string UnavailableLabel = "Not Available";
+    public const string AvailableLabel = "Available";
+    public const string UnavailableLabel = "Not Available";
 
     // What integer counts as true.
     public const int trueValue = 1;
@@ -1215,6 +1215,198 @@ class CurrentBorrower
     }
 
     /// <summary>
+    /// Gets an int from the user then issues it if it's a valid Id.
+    /// </summary>
+    public void BorrowBookByName()
+    {
+        const string NoBooksMessage = "\nThere are no available books that match.";
+        const string BookNamePrompt = "What is the Name of the book you want to issue: ";
+        
+        // Connects to the database.
+        using var db = new LibraryContext();
+
+        // The minimum count for the list to print anything.
+        const int MinCount = 0;
+
+        // What the user is wanting to search for.
+        string searchFor = Program.CheckUserString(BookNamePrompt);
+
+        // What is actually passed into the Where function.
+        // The % signs on either side means it is looking for that term in any place in the string.
+        var keyword = $"%{searchFor}%";
+
+        // Seatches for matches in the titles and author names.
+        List<Book> booksTitles = db.Books.Where(b => EF.Functions.Like(b.Title, keyword)).ToList();
+        List<Book> booksAuthorsFName = db.Books.Where(b => EF.Functions.Like(b.AuthorFName, keyword)).ToList();
+        List<Book> booksAuthorsLName = db.Books.Where(b => EF.Functions.Like(b.AuthorLName, keyword)).ToList();
+
+        // Adds all the results together without duplicates.
+        List<Book> searchResults = booksTitles.Union(booksAuthorsLName).Union(booksAuthorsFName).ToList();
+
+        List<Book> booksToRemove = new List<Book> {};
+
+        foreach (Book book in searchResults)
+        {
+            if (book.Available != Book.trueValue)
+            {
+                booksToRemove.Add(book);
+            }
+        }
+
+        // Removes all the unavailable books.
+        foreach (Book bookToRemove in booksToRemove)
+        {
+            searchResults.RemoveAt(searchResults.IndexOf(bookToRemove));
+        }
+
+        List<Book> orderedSearchResults = searchResults.OrderBy(book => book.AuthorLName).ToList<Book>();
+
+        if (orderedSearchResults.Count() == MinCount)
+        {
+            Console.WriteLine(NoBooksMessage);
+            
+            // Exits without issueing anything.
+            return;
+        }
+
+        Book.ListBooks(orderedSearchResults);
+
+        const string OperationPrompt = "\nEnter the option number of the book to issue, or 0 for Borrower Menu: ";
+        const string InvalidOptionMessage = "That isn't a valid option.";
+
+        /// The number the user has to enter to quit the book operations menu.
+        const int quitOption = 0;
+
+        // Allows the loop to start.
+        // It's false because there isn't any input right now.
+        bool validInput = false;
+
+        // Defaults to -1 because it will cause an error if it isn't changed.
+        // This will make the loop repeat so the user can enter a proper number.
+        const int UserInputDefault = -1;
+        int userInput = UserInputDefault;
+
+        // Loops until the user enters a valid input.
+        while (!validInput)
+        {
+            try
+            {
+                Console.Write(OperationPrompt);
+
+                // Gets the users input and converts it to int.
+                // Throws an error if the users input ism't a number.
+                // This causes it to ask again.
+                userInput = Convert.ToInt32(Console.ReadLine());
+
+                if (userInput == quitOption)
+                {
+                    return;
+                }
+
+                // userInput minus 1 so it matches up to the list index, which starts at 0.
+                Book chosenBook = orderedSearchResults[userInput - 1];
+
+                // Makes it so that the dewey decimal number only shows up if the book is non-fiction.
+                // Declared out here so that it can be used outside the if else statements.
+                string deweyNumber;
+                
+                // Needs to be interpereted from the "bool" the database provides.
+                string genre;
+
+                // Checks the books genre.
+                if (chosenBook.NonFiction == Book.trueValue)
+                {
+                    // Turns the the dewey number into the correct format with at least 3 digits on each side.
+                    string deweyNumberFormatted = string.Format("{0:000.000####}", chosenBook.DeweyNumber);
+
+                    // Adds this to the end of the last line so that it looks natural both when it is non-fiction and when it's not.
+                    // It can't be declared as a constant, I swear it isn't a magic number.
+                    deweyNumber = $"\n            Dewey Decimal Number: {deweyNumberFormatted}";
+                    genre = Book.NonFictionLabel;
+                } else
+                {
+                    // Means the dewey number won't add anything if the book is fiction.
+                    deweyNumber = "";
+                    genre = Book.FictionLabel;
+                }
+
+                // Needs to interpret the int provided by the database.
+                string available;
+                if (chosenBook.Available == Book.trueValue)
+                {
+                    available = Book.AvailableLabel;
+                } else
+                {
+                    available = Book.UnavailableLabel;
+                }
+
+                // Tbe deweyNumber is empty if the book is fiction.
+                string bookPrintStructure = 
+                $"""
+
+                    Title {chosenBook.Title}
+                            Book Id: {chosenBook.Id}
+                            Author: {chosenBook.AuthorFName} {chosenBook.AuthorLName}
+                            Genre: {genre}{deweyNumber}
+                            Availablility: {available}
+                """;
+
+                Console.WriteLine(bookPrintStructure);
+                
+                // Needs to print out the list of options then take an input.
+                string[] bookOptions = ["Issue", "Cancel"];
+                const string menuName = "Book Issue Menu";
+
+                // Makes a menu with the options from the list.
+                int optionChosen = Program.Menu(bookOptions, menuName);
+
+                const int IssueOption = 1;
+                const int CancelOption = 2;
+
+                // What to do based on the option chosen.
+                switch (optionChosen)
+                {
+                    case IssueOption:
+                        // Creates a new borroweditem using the chosen book.
+                        BorrowedItem borrowedBookByName = new BorrowedItem();
+                        borrowedBookByName.BorrowerId = BorrowerId;
+                        borrowedBookByName.Id = chosenBook.Id;
+
+                        // Changes the chosen book's status to on loan.
+                        chosenBook.Available = 0;
+
+                        // Adds the borrowedItem to the borrowedItems table so that it can be issued.
+                        db.BorrowedItems.Add(borrowedBookByName);
+
+                        // Saves the updated table.
+                        db.SaveChanges();
+
+                        return;
+                    case CancelOption:
+                        // Exits the book operations function and returns to the borrowers menu.
+                        return;
+                    default:
+                        Console.WriteLine(InvalidOptionMessage);
+                        // Exits back into the loop.
+                        break;
+                }
+            }
+            catch
+            {   
+                // If the user has chosen to quit the Book Operations menu.
+                // Goes back to the Borrowers menu.
+                if (userInput == quitOption)
+                {
+                    return;
+                }
+                // If the input wasn't a book number or the quit option.
+                // It's not an else because if the if statement is true then it'll quit the function without the chance to get to this place anyway.
+                Console.WriteLine(InvalidOptionMessage);
+            }
+        }
+    }
+
+    /// <summary>
     /// Lists the borrowers books they have on loan.
     /// </summary>
     /// <returns>True if the borrower has books, false if the borrower has no books.</returns>
@@ -1522,7 +1714,7 @@ class CurrentBorrower
         BorrowerStats();
 
         // What options are available to the user in this menu.
-        string[] options = ["List borrowed books", "List all books", "Issue a book", "Return book", "Search books", "Logout"];
+        string[] options = ["List borrowed books", "List all books", "Issue a book by Id", "Issue a book by search", "Return book", "Search books", "Logout"];
 
         // Controls the loop.
         bool loggedIn = true;
@@ -1535,9 +1727,10 @@ class CurrentBorrower
             const int ListOption = 1;
             const int ListAllBooksOptions = 2;
             const int IssueOption = 3;
-            const int ReturnOption = 4;
-            const int SearchOption = 5;
-            const int LogoutOption = 6;
+            const int IssueBookByNameOption = 4;
+            const int ReturnOption = 5;
+            const int SearchOption = 6;
+            const int LogoutOption = 7;
 
             // Acting on their choice.
             switch (optionChosen)
@@ -1554,6 +1747,9 @@ class CurrentBorrower
                     break;
                 case IssueOption:
                     BorrowBook();
+                    break;
+                case IssueBookByNameOption:
+                    BorrowBookByName();
                     break;
                 case ReturnOption:
                     Book.ReturnBook();

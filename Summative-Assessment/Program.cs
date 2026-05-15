@@ -188,6 +188,32 @@ class Program
     }
 
     /// <summary>
+    /// Checks whether the database can be written to.
+    /// </summary>
+    /// <returns>True if the database can be connected to and saved. False if not.</returns>
+    public static bool CheckDatabase()
+    {
+        try
+        {
+            var db = new LibraryContext();
+
+            const int TestNumber = 1;
+            // Tries to find data in the database, crashes if it can't be found.
+            db.Books.Find(TestNumber);
+
+            return true;
+        }
+        catch
+        {
+            // Tells the user what's wrong.
+            const string DatabaseFailedMessage = "The database couldn't be connected to. \nPlease fix this and try again.";
+            Console.WriteLine(DatabaseFailedMessage);
+
+            return false;
+        }
+    }
+
+    /// <summary>
     /// The main menu that greets the user at the start.
     /// </summary>
     /// <returns>The option they choose.</returns>
@@ -204,6 +230,10 @@ class Program
 
     static void Main(string[] args)
     {
+        if (!CheckDatabase())
+        {
+            return;
+        }
         const string InvalidOptionMessage = "That isn't a valid option.";
 
         // Which option lines up with switch statement.
