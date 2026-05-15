@@ -1215,7 +1215,7 @@ class CurrentBorrower
     }
 
     /// <summary>
-    /// Gets an int from the user then issues it if it's a valid Id.
+    /// Issues a book by searching for it.
     /// </summary>
     public void BorrowBookByName()
     {
